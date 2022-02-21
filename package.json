@@ -4,7 +4,8 @@
   "description": "API server for WFL",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "build": "tsc",
+    "start": "node ./dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/garywige/wigedev-fitness-log-server/issues"
   },
-  "homepage": "https://github.com/garywige/wigedev-fitness-log-server#readme"
+  "homepage": "https://github.com/garywige/wigedev-fitness-log-server#readme",
+  "dependencies": {
+    "typescript": "^4.5.5"
+  }
 }
