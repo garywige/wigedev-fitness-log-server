@@ -4,6 +4,7 @@
   "description": "API server for WFL",
   "main": "src/index.js",
   "scripts": {
+    "prebuild": "rm -rf dist/*",
     "build": "tsc",
     "start": "node ./dist/index.js"
   },
