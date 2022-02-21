@@ -1,9 +1,10 @@
 {
-  "name": "wfl-monorepo",
+  "name": "wigedev-fitness-log-server",
   "version": "0.0.1",
-  "description": "Monorepo containing both front-end and back-end projects for WFL",
-  "main": "index.js",
+  "description": "API server for WFL",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
