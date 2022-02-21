@@ -1,0 +1,23 @@
+{
+  "name": "wfl-monorepo",
+  "version": "0.0.1",
+  "description": "Monorepo containing both front-end and back-end projects for WFL",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/garywige/wigedev-fitness-log-server.git"
+  },
+  "keywords": [
+    "Angular",
+    "Express.js",
+    "Swagger"
+  ],
+  "author": "Gary Wige",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/garywige/wigedev-fitness-log-server/issues"
+  },
+  "homepage": "https://github.com/garywige/wigedev-fitness-log-server#readme"
+}
