@@ -68,6 +68,7 @@ components:
           type: integer
         name:
           type: string
+          nullable: true
     WorkoutDetail:
       type: object
       properties:
