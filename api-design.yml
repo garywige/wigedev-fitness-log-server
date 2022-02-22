@@ -54,6 +54,11 @@ components:
             type: string
           workoutCount:
             type: number
+    Workout:
+      type: object
+      properties:
+        id:
+          type: string
   parameters:
     filterParam:
       in: query
@@ -149,6 +154,33 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Cycle'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/workouts:
+    get:
+      description: Returns workouts associated with a given cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: cycle
+          schema:
+            type: integer
+          description: The cycle ID of the workouts requested
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workouts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workout'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
