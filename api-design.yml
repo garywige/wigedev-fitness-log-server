@@ -6,3 +6,67 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local environment
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ServerMessage"
+            type: string
+  schemas:
+    ServerMessage:
+      type: object
+      properties:
+        message:
+          type: string
+    Role:
+      type: string
+      enum: [none, free, pro]
+  parameters:
+    filterParam:
+      in: query
+      name: filter
+      required: false
+      schema:
+        type: string
+      description: Search text to filter the result set by
+paths:
+  /v1/login:
+    post:
+      description: |
+        Generates a JWT, given correct credentials.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200': # Response
+          description: OK
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                description: JWT token that contains userId as subject, email and role as data payload
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
