@@ -20,6 +20,20 @@ components:
           schema:
             $ref: "#/components/schemas/ServerMessage"
             type: string
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ServerMessage"
+            type: string
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ServerMessage"
+            type: string
   schemas:
     ServerMessage:
       type: object
@@ -38,7 +52,7 @@ components:
         type: string
       description: Search text to filter the result set by
 paths:
-  /v1/login:
+  /v1/signin:
     post:
       description: |
         Generates a JWT, given correct credentials.
@@ -69,4 +83,44 @@ paths:
                 description: JWT token that contains userId as subject, email and role as data payload
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/signup:
+    post:
+      description: |
+        creates a WFL account and begins the em ail verification process.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                accountType:
+                  type: string
+              required:
+                - email
+                - password
+                - accountType
+      responses:
+        '201': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                description: Returns the email address that the verification email was sent to.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
     
