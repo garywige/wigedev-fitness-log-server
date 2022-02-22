@@ -34,16 +34,6 @@ components:
           schema:
             $ref: "#/components/schemas/ServerMessage"
             type: string
-    Deleted:
-      description: Rows Deleted
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              deleted:
-                type: string
-                description: The number of rows that were deleted
   schemas:
     ServerMessage:
       type: object
@@ -298,7 +288,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/responses/Deleted'
+                $ref: '#/components/schemas/ServerMessage'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
