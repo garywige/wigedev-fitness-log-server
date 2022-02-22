@@ -10,7 +10,8 @@
     "style": "npx prettier -c 'src/**'",
     "style:fix": "npx prettier --write 'src/**'",
     "lint": "npx eslint src/**",
-    "lint:fix": "npx eslint src/** --fix"
+    "lint:fix": "npx eslint src/** --fix",
+    "test": "npx jasmine \"dist/**.spec.js\""
   },
   "repository": {
     "type": "git",
@@ -31,10 +32,12 @@
     "express": "^4.17.3"
   },
   "devDependencies": {
+    "@types/jasmine": "^3.10.3",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
     "eslint": "^8.9.0",
     "eslint-config-prettier": "^8.4.0",
+    "jasmine": "^4.0.2",
     "prettier": "^2.5.1",
     "typescript": "^4.5.5"
   }
