@@ -43,6 +43,17 @@ components:
     Role:
       type: string
       enum: [none, free, pro]
+    Cycle:
+      type: object
+      properties:
+          id:
+            type: number
+          name:
+            type: string
+          modified:
+            type: string
+          workoutCount:
+            type: number
   parameters:
     filterParam:
       in: query
@@ -121,6 +132,24 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
-
-    
+  /v1/cycles:
+    get:
+      description: Returns cycles associated with the authenticated user.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cycles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cycle'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
