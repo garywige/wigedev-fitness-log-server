@@ -34,6 +34,16 @@ components:
           schema:
             $ref: "#/components/schemas/ServerMessage"
             type: string
+    Deleted:
+      description: Rows Deleted
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: string
+                description: The number of rows that were deleted
   schemas:
     ServerMessage:
       type: object
@@ -213,6 +223,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Cycle'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/cycle/{id}:
+    get:
+      description: Reads the specified Cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The ID of the Cycle being read.
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cycle'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      description: Updates the specified Cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The ID of the Cycle being updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cycle'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      description: Deletes the specified Cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The ID of the Cycle being deleted
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/responses/Deleted'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
