@@ -68,6 +68,15 @@ components:
           type: integer
         name:
           type: string
+    WorkoutDetail:
+      type: object
+      properties:
+        date:
+          type: string
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Set'
     Set:
       type: object
       properties:
@@ -75,6 +84,15 @@ components:
           type: integer
         exercise:
           $ref: '#/components/schemas/Exercise'
+        weight:
+          type: integer
+        unit:
+          type: string
+        repsPrescribed:
+          type: integer
+        repsPerformed:
+          type: integer
+          nullable: true
   parameters:
     filterParam:
       in: query
@@ -201,6 +219,27 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    post:
+      description: Create a new workout
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkoutDetail'
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v1/workout/{date}:
     get:
       description: Returns the workout associated with the specified date if it exists
@@ -231,3 +270,37 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    put:
+      description: Updates the properties of a workout associated with the specified date
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: date
+          required: true
+          description: Date of the workout
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sets:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Set'
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkoutDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
