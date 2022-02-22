@@ -47,18 +47,34 @@ components:
       type: object
       properties:
           id:
-            type: number
+            type: integer
           name:
             type: string
           modified:
             type: string
           workoutCount:
-            type: number
+            type: integer
     Workout:
       type: object
       properties:
-        id:
+        date:
           type: string
+        setCount:
+          type: integer
+    Exercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    Set:
+      type: object
+      properties:
+        id:
+          type: integer
+        exercise:
+          $ref: '#/components/schemas/Exercise'
   parameters:
     filterParam:
       in: query
@@ -181,6 +197,36 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Workout'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/workout/{date}:
+    get:
+      description: Returns the workout associated with the specified date if it exists
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: date
+          required: true
+          description: Date of the workout
+          schema:
+            type: string
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  sets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Set'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
