@@ -1,0 +1,8 @@
+openapi: 3.0.1
+info:
+  title: WigeDev-Fitness-Log-Server
+  description: WFL API Server
+  version: 0.0.1
+servers:
+  - url: http://localhost:3000
+    description: Local environment
