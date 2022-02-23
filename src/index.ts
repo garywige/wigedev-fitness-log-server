@@ -1,12 +1,18 @@
-import * as express from 'express'
+import * as http from 'http'
+import app from './app'
+import * as config from './config'
 
-const app = express()
-const port = 3000
+export let Instance: http.Server
+async function start() {
+    console.log('Starting server: ')
+    console.log(`isProd: ${config.IsProd}`)
+    console.log(`port: ${config.Port}`)
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+    Instance = http.createServer(app)
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+    Instance.listen(config.Port, async () => {
+        console.log(`Server listening on port ${config.Port}...`)
+    })
+}
+
+start()
