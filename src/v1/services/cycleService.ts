@@ -67,6 +67,33 @@ export class CycleService {
 
         res.status(201).send(output)
     }
+
+    async getCycleFromId(req: Request, res: Response){
+
+        // verify auth
+
+        // validate input
+        if(!/^[0-9]+$/.test(req.params.toString())){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+        }
+
+        // format output
+        const output = {
+            id: 1337,
+            name: 'Starting Strength',
+            modified: '20220223',
+            workoutCount: 15
+        }
+
+        res.status(200).send(output)
+    }
 }
 
 interface PostCyclesReqBody {

@@ -12,7 +12,7 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 router.get('/:id', async (req: Request, res: Response) => {
-    console.log('GET /v1/cycle/{id}')
+    await CycleService.instance.getCycleFromId(req, res)
 })
 
 router.put('/:id', async (req: Request, res: Response) => {
