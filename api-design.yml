@@ -113,26 +113,42 @@ components:
       properties:
         date:
           type: string
+          example: '20220222'
         sets:
           type: array
           items:
             $ref: '#/components/schemas/Set'
+      required:
+        - date
+        - sets
     Set:
       type: object
       properties:
         id:
           type: integer
+          example: 1337
         exercise:
           $ref: '#/components/schemas/Exercise'
         weight:
-          type: integer
+          type: number
+          example: 135
         unit:
           type: string
+          enum:
+            - lbs
+            - kg
+          example: "lbs"
         repsPrescribed:
           type: integer
+          example: 10
         repsPerformed:
           type: integer
-          nullable: true
+      required:
+        - id
+        - exercise
+        - weight
+        - unit
+        - repsPrescribed
   parameters:
     filterParam:
       in: query
