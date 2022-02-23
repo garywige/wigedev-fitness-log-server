@@ -356,7 +356,37 @@ paths:
             type: integer
           description: The id of the Exercise to read
       responses:
-        '200':
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      description: Updates Exercise with given id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The id of the Exercise to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200': # Response
           description: OK
           content:
             application/json:
