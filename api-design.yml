@@ -1,0 +1,770 @@
+openapi: 3.0.1
+info:
+  title: WigeDev-Fitness-Log-Server
+  description: WFL API Server
+  version: 0.0.1
+servers:
+  - url: http://localhost:3000
+    description: Local environment
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    DeletedSuccess:
+      description: Successful deletion
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ServerMessage'
+            type: string
+          example:
+            message: "1 row(s) deleted successfully"
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ServerMessage"
+            type: string
+          example:
+            message: "You are not authorized to use this interface"
+    BadRequestError:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ServerMessage"
+            type: string
+          example:
+            message: "A parameter or request body was formatted improperly"
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ServerMessage"
+            type: string
+          example:
+            message: "An internal server error occurred. Please try again later."
+    
+  schemas:
+    ServerMessage:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    Cycle:
+      type: object
+      properties:
+          id:
+            type: integer
+          name:
+            type: string
+          modified:
+            type: string
+          workoutCount:
+            type: integer
+      required:
+        - id
+        - name
+        - modified
+        - workoutCount
+      example:
+        id: 1337
+        name: "Starting Strength"
+        modified: '20220222'
+        workoutCount: 15
+    Exercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+        - id
+        - name
+      example:
+        id: 1337
+        name: "Bench Press"
+    Workout:
+      type: object
+      properties:
+        date:
+          type: string
+          example: '20220222'
+        sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Set'
+      required:
+        - date
+        - sets
+    Set:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1337
+        exercise:
+          $ref: '#/components/schemas/Exercise'
+        weight:
+          type: number
+          example: 135
+        unit:
+          type: string
+          enum:
+            - lbs
+            - kg
+          example: "lbs"
+        repsPrescribed:
+          type: integer
+          example: 10
+        repsPerformed:
+          type: integer
+      required:
+        - id
+        - exercise
+        - weight
+        - unit
+        - repsPrescribed
+  parameters:
+    filterParam:
+      in: query
+      name: filter
+      required: false
+      schema:
+        type: string
+      description: Search text to filter the result set by
+paths:
+  /v1/signin:
+    post:
+      tags:
+        - Users
+      description: |
+        Generates an authorization token when given a correct set of credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+              example:
+                email: 'test@test.com'
+                password: 'password123!'
+      responses:
+        '200': # Response
+          description: OK
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                description: authorization token
+                required:
+                  - accessToken
+                example:
+                  accessToken: 'asdf1234asdf1234'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/signup:
+    post:
+      tags:
+        - Users
+      description: |
+        creates a WFL account and begins the email verification process.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                accountType:
+                  type: string
+                  enum:
+                    - free
+                    - pro
+              required:
+                - email
+                - password
+                - accountType
+              example:
+                email: "test@test.com"
+                password: "P@ssw0rd"
+                accountType: "pro"
+      responses:
+        '201': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                description: Returns the email address that the verification email was sent to.
+                required:
+                  - email
+                example:
+                  email: "test@test.com"
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/cycles:
+    get:
+      tags:
+        - Cycles
+      description: Reads cycles associated with the authenticated user.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cycles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Cycle'
+                required:
+                  - cycles
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Cycles
+      description: Creates a new cycle
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+              example:
+                name: "Starting Strength"
+      responses:
+        '201': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cycle'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/cycle/{id}:
+    get:
+      tags:
+        - Cycles
+      description: Reads the specified Cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The ID of the Cycle being read.
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cycle'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Cycles
+      description: Updates the specified Cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The ID of the Cycle being updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+              example:
+                name: "Starting Strength"
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cycle'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Cycles
+      description: Deletes the specified Cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The ID of the Cycle being deleted
+      responses:
+        '200': # Response
+          $ref: '#/components/responses/DeletedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/exercises:
+    get:
+      tags:
+        - Exercises
+      description: Reads exercises associated with this userId and userId 1 (free)
+      security:
+        - bearerAuth: []
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exercises:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        workoutCount:
+                          type: integer
+                      required:
+                        - id
+                        - name
+                        - workoutCount
+                      example:
+                        id: 1337
+                        name: "Bench Press"
+                        workoutCount: 37
+                required:
+                  - exercises
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Exercises
+      description: Creates a new Exercise
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+              example:
+                name: "Bench Press"
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/exercise/{id}:
+    get:
+      tags:
+        - Exercises
+      description: Reads Exercise with given id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The id of the Exercise to read
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Exercises
+      description: Updates Exercise with given id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The id of the Exercise to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+              example:
+                name: "Bench Press"
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Exercises
+      description: Deletes Exercise with given id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The id of the Exercise to delete
+      responses:
+        '200': # Response
+          $ref: '#/components/responses/DeletedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/workouts:
+    get:
+      tags:
+        - Workouts
+      description: Reads workouts associated with a given cycle
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          required: true
+          name: cycle
+          schema:
+            type: integer
+          description: The cycle ID of the workouts requested
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workouts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        setCount:
+                          type: integer
+                      required:
+                        - date
+                        - setCount
+                      example:
+                        date: '20220222'
+                        setCount: 16
+                required:
+                  - workouts
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Workouts
+      description: Create a new workout if none exists on specified date
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - date
+                - sets
+              properties:
+                date:
+                  type: string
+                  example: '20220222'
+                sets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      exerciseId:
+                        type: integer
+                      weight:
+                        type: number
+                      unit:
+                        type: string
+                        enum:
+                          - lbs
+                          - kg
+                      repsPerformed:
+                        type: integer
+                      repsPrescribed:
+                        type: integer
+                    required:
+                      - exerciseId
+                      - weight
+                      - unit
+                      - repsPrescribed
+                    example:
+                      exerciseId: 1337
+                      weight: 135
+                      unit: "lbs"
+                      repsPrescribed: 10
+      responses:
+        '201': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/workout/{date}:
+    get:
+      tags:
+        - Workouts
+      description: Returns the workout associated with the specified date if it exists
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: date
+          required: true
+          description: Date of the workout
+          schema:
+            type: string
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - date
+                  - sets
+                properties:
+                  date:
+                    type: string
+                    example: '20220222'
+                  sets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Set'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Workouts
+      description: Updates the properties of a workout associated with the specified date
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: date
+          required: true
+          description: Date of the workout
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sets
+              properties:
+                sets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      exerciseId:
+                        type: integer
+                      weight:
+                        type: number
+                      unit:
+                        type: string
+                        enum:
+                          - lbs
+                          - kg
+                      repsPrescribed:
+                        type: integer
+                      repsPerformed:
+                        type: integer
+                    required:
+                      - exerciseId
+                      - weight
+                      - unit
+                      - repsPrescribed
+                    example:
+                      exerciseId: 1337
+                      weight: 135
+                      unit: "lbs"
+                      repsPrescribed: 10
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workout'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Workouts
+      description: Deletes the workout on the specified date
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: date
+          required: true
+          description: Date of the workout
+          schema:
+            type: string
+      responses:
+        '200': # Response
+          $ref: '#/components/responses/DeletedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
