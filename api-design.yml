@@ -692,4 +692,22 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    delete:
+      description: Deletes the workout on the specified date
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: date
+          required: true
+          description: Date of the workout
+          schema:
+            type: string
+      responses:
+        '200': # Response
+          $ref: '#/components/responses/DeletedSuccess'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     
