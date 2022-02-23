@@ -20,7 +20,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 })
 
 router.delete('/:id', async (req: Request, res: Response) => {
-    console.log('DELETE /v1/cycle/{id}')
+    await CycleService.instance.deleteCycle(req, res)
 })
 
 export default router

@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { BadRequestError, InternalServerError } from "./responses"
+import { BadRequestError, InternalServerError, ServerMessage } from "./responses"
 
 export class CycleService {
     private static _instance: CycleService
@@ -121,6 +121,28 @@ export class CycleService {
             workoutCount: 15
         }
 
+        res.status(200).send(output)
+    }
+
+    async deleteCycle(req: Request, res: Response){
+
+        // verify auth
+
+        // validate input
+        if(!/^[0-9]+$/.test(req.params.toString())){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try{
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // format output
+        const output = new ServerMessage('1 row(s) deleted successfully')
         res.status(200).send(output)
     }
 }
