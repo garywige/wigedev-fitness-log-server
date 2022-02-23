@@ -343,6 +343,29 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /v1/exercise/{id}:
+    get:
+      description: Reads Exercise with given id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            type: integer
+          description: The id of the Exercise to read
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v1/workouts:
     get:
       description: Reads workouts associated with a given cycle
