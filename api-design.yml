@@ -160,6 +160,8 @@ components:
 paths:
   /v1/signin:
     post:
+      tags:
+        - Unauthenticated
       description: |
         Generates an authorization token when given a correct set of credentials
       requestBody:
@@ -200,6 +202,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/signup:
     post:
+      tags:
+        - Unauthenticated
       description: |
         creates a WFL account and begins the email verification process.
       requestBody:
@@ -247,6 +251,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/cycles:
     get:
+      tags:
+        - Cycles
       description: Reads cycles associated with the authenticated user.
       security:
         - bearerAuth: []
@@ -269,6 +275,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
+      tags:
+        - Cycles
       description: Creates a new cycle
       security:
         - bearerAuth: []
@@ -298,6 +306,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/cycle/{id}:
     get:
+      tags:
+        - Cycles
       description: Reads the specified Cycle
       security:
         - bearerAuth: []
@@ -320,6 +330,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     put:
+      tags:
+        - Cycles
       description: Updates the specified Cycle
       security:
         - bearerAuth: []
@@ -355,6 +367,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
+      tags:
+        - Cycles
       description: Deletes the specified Cycle
       security:
         - bearerAuth: []
@@ -374,6 +388,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/exercises:
     get:
+      tags:
+        - Exercises
       description: Reads exercises associated with this userId and userId 1 (free)
       security:
         - bearerAuth: []
@@ -411,6 +427,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
+      tags:
+        - Exercises
       description: Creates a new Exercise
       security:
         - bearerAuth: []
@@ -439,6 +457,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/exercise/{id}:
     get:
+      tags:
+        - Exercises
       description: Reads Exercise with given id
       security:
         - bearerAuth: []
@@ -461,6 +481,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     put:
+      tags:
+        - Exercises
       description: Updates Exercise with given id
       security:
         - bearerAuth: []
@@ -496,6 +518,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
+      tags:
+        - Exercises
       description: Deletes Exercise with given id
       security:
         - bearerAuth: []
@@ -515,6 +539,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/workouts:
     get:
+      tags:
+        - Workouts
       description: Reads workouts associated with a given cycle
       security:
         - bearerAuth: []
@@ -544,6 +570,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
+      tags:
+        - Workouts
       description: Create a new workout if none exists on specified date
       security:
         - bearerAuth: []
@@ -601,6 +629,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
   /v1/workout/{date}:
     get:
+      tags:
+        - Workouts
       description: Returns the workout associated with the specified date if it exists
       security:
         - bearerAuth: []
@@ -634,6 +664,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     put:
+      tags:
+        - Workouts
       description: Updates the properties of a workout associated with the specified date
       security:
         - bearerAuth: []
@@ -693,6 +725,8 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
+      tags:
+        - Workouts
       description: Deletes the workout on the specified date
       security:
         - bearerAuth: []
