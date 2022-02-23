@@ -196,6 +196,8 @@ paths:
                   - accessToken
                 example:
                   accessToken: 'asdf1234asdf1234'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -300,6 +302,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Cycle'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -325,6 +329,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Cycle'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -362,6 +368,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Cycle'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -382,6 +390,8 @@ paths:
       responses:
         '200': # Response
           $ref: '#/components/responses/DeletedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -451,6 +461,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -476,6 +488,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -513,6 +527,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -533,6 +549,8 @@ paths:
       responses:
         '200': # Response
           $ref: '#/components/responses/DeletedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -565,6 +583,8 @@ paths:
                       $ref: '#/components/schemas/Workout'
                 required:
                   - workouts
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -623,6 +643,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WorkoutDetail'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -659,6 +681,8 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Set'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -720,6 +744,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WorkoutDetail'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -740,6 +766,8 @@ paths:
       responses:
         '200': # Response
           $ref: '#/components/responses/DeletedSuccess'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
