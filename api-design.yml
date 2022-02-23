@@ -68,7 +68,6 @@ components:
           type: integer
         name:
           type: string
-          nullable: true
     WorkoutDetail:
       type: object
       properties:
@@ -293,9 +292,60 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /v1/exercises:
+    get:
+      description: Reads exercises associated with this userId and userId 1 (free)
+      security:
+        - bearerAuth: []
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exercises:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        workoutCount:
+                          type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      description: Creates a new Exercise
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v1/workouts:
     get:
-      description: Returns workouts associated with a given cycle
+      description: Reads workouts associated with a given cycle
       security:
         - bearerAuth: []
       parameters:
