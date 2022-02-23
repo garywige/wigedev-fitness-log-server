@@ -8,7 +8,7 @@ router.get('/', async (req: Request, res: Response) => {
 })
 
 router.post('/', async (req: Request, res: Response) => {
-    console.log('POST /v1/cycles')
+    await CycleService.instance.postCycles(req, res)
 })
 
 router.get('/:id', async (req: Request, res: Response) => {
