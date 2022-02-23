@@ -6,6 +6,7 @@
   "scripts": {
     "prebuild": "rm -rf dist/*",
     "build": "tsc",
+    "postbuild": "cp -R src/public dist/",
     "start": "node ./dist/index.js",
     "style": "npx prettier -c 'src/**'",
     "style:fix": "npx prettier --write 'src/**'",
