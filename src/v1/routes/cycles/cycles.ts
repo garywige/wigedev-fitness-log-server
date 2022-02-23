@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express'
+import { CycleService } from '../../services/cycleService'
 
 const router = Router()
 
 router.get('/', async (req: Request, res: Response) => {
-    console.log('GET /v1/cycles')
+    await CycleService.instance.getCycles(req, res)
 })
 
 router.post('/', async (req: Request, res: Response) => {
