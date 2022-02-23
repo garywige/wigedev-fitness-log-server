@@ -86,6 +86,12 @@ components:
           type: integer
         name:
           type: string
+      required:
+        - id
+        - name
+      example:
+        id: 1337
+        name: "Bench Press"
     WorkoutDetail:
       type: object
       properties:
@@ -243,6 +249,10 @@ paths:
               properties:
                 name:
                   type: string
+              required:
+                - name
+              example:
+                name: "Starting Strength"
       responses:
         '200': # Response
           description: OK
@@ -297,6 +307,10 @@ paths:
               properties:
                 name:
                   type: string
+              required:
+                - name
+              example:
+                name: "Starting Strength"
       responses:
         '200': # Response
           description: OK
@@ -326,6 +340,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServerMessage'
+              example:
+                message: "1 row(s) deleted successfully"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -354,6 +370,16 @@ paths:
                           type: string
                         workoutCount:
                           type: integer
+                      required:
+                        - id
+                        - name
+                        - workoutCount
+                      example:
+                        id: 1337
+                        name: "Bench Press"
+                        workoutCount: 37
+                required:
+                  - exercises
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -370,6 +396,10 @@ paths:
               properties:
                 name:
                   type: string
+              required:
+                - name
+              example:
+                name: "Bench Press"
       responses:
         '200':
           description: OK
@@ -416,6 +446,7 @@ paths:
             type: integer
           description: The id of the Exercise to update
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -423,6 +454,10 @@ paths:
               properties:
                 name:
                   type: string
+              required:
+                - name
+              example:
+                name: "Bench Press"
       responses:
         '200': # Response
           description: OK
