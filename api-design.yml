@@ -13,6 +13,15 @@ components:
       scheme: bearer
       bearerFormat: JWT
   responses:
+    DeletedSuccess:
+      description: Successful deletion
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ServerMessage'
+            type: string
+          example:
+            message: "1 row(s) deleted successfully"
     UnauthorizedError:
       description: Unauthorized
       content:
@@ -22,7 +31,7 @@ components:
             type: string
           example:
             message: "You are not authorized to use this interface"
-    BadRequest:
+    BadRequestError:
       description: Bad Request
       content:
         application/json:
@@ -40,6 +49,7 @@ components:
             type: string
           example:
             message: "An internal server error occurred. Please try again later."
+    
   schemas:
     ServerMessage:
       type: object
@@ -210,7 +220,7 @@ paths:
                 example:
                   email: "test@test.com"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/BadRequestError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v1/cycles:
@@ -335,13 +345,7 @@ paths:
           description: The ID of the Cycle being deleted
       responses:
         '200': # Response
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServerMessage'
-              example:
-                message: "1 row(s) deleted successfully"
+          $ref: '#/components/responses/DeletedSuccess'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
@@ -482,11 +486,7 @@ paths:
           description: The id of the Exercise to delete
       responses:
         '200': # Response
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ServerMessage'
+          $ref: '#/components/responses/DeletedSuccess'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '500':
