@@ -58,9 +58,6 @@ components:
           type: string
       required:
         - message
-    Role:
-      type: string
-      enum: [none, free, pro]
     Cycle:
       type: object
       properties:
@@ -82,19 +79,6 @@ components:
         name: "Starting Strength"
         modified: '20220222'
         workoutCount: 15
-    Workout:
-      type: object
-      properties:
-        date:
-          type: string
-        setCount:
-          type: integer
-      required:
-        - date
-        - setCount
-      example:
-        date: '20220222'
-        setCount: 16
     Exercise:
       type: object
       properties:
@@ -108,7 +92,7 @@ components:
       example:
         id: 1337
         name: "Bench Press"
-    WorkoutDetail:
+    Workout:
       type: object
       properties:
         date:
@@ -161,7 +145,7 @@ paths:
   /v1/signin:
     post:
       tags:
-        - Unauthenticated
+        - Users
       description: |
         Generates an authorization token when given a correct set of credentials
       requestBody:
@@ -205,7 +189,7 @@ paths:
   /v1/signup:
     post:
       tags:
-        - Unauthenticated
+        - Users
       description: |
         creates a WFL account and begins the email verification process.
       requestBody:
@@ -580,7 +564,18 @@ paths:
                   workouts:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Workout'
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        setCount:
+                          type: integer
+                      required:
+                        - date
+                        - setCount
+                      example:
+                        date: '20220222'
+                        setCount: 16
                 required:
                   - workouts
         '400':
@@ -642,7 +637,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkoutDetail'
+                $ref: '#/components/schemas/Workout'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
@@ -743,7 +738,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkoutDetail'
+                $ref: '#/components/schemas/Workout'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '401':
