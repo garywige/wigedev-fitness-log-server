@@ -294,7 +294,7 @@ paths:
               example:
                 name: "Starting Strength"
       responses:
-        '200': # Response
+        '201': # Response
           description: OK
           content:
             application/json:
@@ -445,7 +445,7 @@ paths:
               example:
                 name: "Bench Press"
       responses:
-        '200':
+        '201':
           description: OK
           content:
             application/json:
@@ -617,7 +617,7 @@ paths:
                       unit: "lbs"
                       repsPrescribed: 10
       responses:
-        '200': # Response
+        '201': # Response
           description: OK
           content:
             application/json:
