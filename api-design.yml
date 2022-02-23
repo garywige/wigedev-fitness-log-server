@@ -153,7 +153,7 @@ paths:
   /v1/signup:
     post:
       description: |
-        creates a WFL account and begins the em ail verification process.
+        creates a WFL account and begins the email verification process.
       requestBody:
         required: true
         content:
@@ -167,10 +167,17 @@ paths:
                   type: string
                 accountType:
                   type: string
+                  enum:
+                    - free
+                    - pro
               required:
                 - email
                 - password
                 - accountType
+              example:
+                email: "test@test.com"
+                password: "P@ssw0rd"
+                accountType: "pro"
       responses:
         '201': # Response
           description: OK
@@ -182,6 +189,10 @@ paths:
                   email:
                     type: string
                 description: Returns the email address that the verification email was sent to.
+                required:
+                  - email
+                example:
+                  email: "test@test.com"
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
