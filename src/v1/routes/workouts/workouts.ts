@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express'
+import { WorkoutService } from '../../services/workoutService'
 
 const router = Router()
 
 router.get('/', async (req: Request, res: Response) => {
-    console.log('GET /v1/workouts')
+    await WorkoutService.instance.getWorkouts(req, res)
 })
 
 router.post('/', async (req: Request, res: Response) => {
