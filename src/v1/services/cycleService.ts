@@ -101,7 +101,7 @@ export class CycleService {
 
         // validate input
         const body = req.body as CyclesReqBody
-        if(!body.name){
+        if(!/^[0-9]+$/.test(req.params.toString()) || !body.name){
             res.status(400).send(BadRequestError)
             return
         }
