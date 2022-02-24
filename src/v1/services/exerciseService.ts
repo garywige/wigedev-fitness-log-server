@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { BadRequestError, InternalServerError } from "./responses"
+import { BadRequestError, InternalServerError, ServerMessage } from "./responses"
 export class ExerciseService {
     private static _instance: ExerciseService
 
@@ -118,6 +118,27 @@ export class ExerciseService {
         }
 
         res.status(200).send(output)
+    }
+
+    async deleteExercise(req: Request, res: Response){
+
+        // verify auth
+
+        // validate input
+        if(!/^[0-9]+$/.test(req.params.toString())){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // format output
+        res.status(200).send(new ServerMessage('1 row(s) deleted successfully'))
     }
 }
 

@@ -20,7 +20,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 })
 
 router.delete('/:id', async (req: Request, res: Response) => {
-    console.log('DELETE /v1/exercise/{id}')
+    await ExerciseService.instance.deleteExercise(req, res)
 })
 
 export default router
