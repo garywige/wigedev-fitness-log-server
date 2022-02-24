@@ -45,7 +45,7 @@ export class WorkoutService {
         // verify auth
 
         // validate input
-        const body = req.body as WorkoutReqBody
+        const body = req.body as WorkoutPostReqBody
         if(!body?.date || !body?.sets){
             res.status(400).send(BadRequestError)
             return
@@ -120,8 +120,8 @@ export class WorkoutService {
         // verify auth
 
         // validate input
-        const body = req.body as WorkoutReqBody
-        if(!validateDate(req.params?.date) || !body?.date || !body?.sets){
+        const body = req.body as WorkoutPutReqBody
+        if(!validateDate(req.params?.date) || !body?.sets){
             res.status(400).send(BadRequestError)
             return
         }
@@ -175,8 +175,12 @@ export class WorkoutService {
     }
 }
 
-interface WorkoutReqBody {
+interface WorkoutPostReqBody {
     date: string
+    sets: SetReqBody[]
+}
+
+interface WorkoutPutReqBody {
     sets: SetReqBody[]
 }
 
