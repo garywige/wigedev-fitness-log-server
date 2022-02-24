@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { BadRequestError, InternalServerError, ServerMessage } from "./responses"
-import { validateDate, validateInt, validateReqParam } from "./validation"
+import { validateDate, validateInt } from "./validation"
 export class WorkoutService {
     private static _instance: WorkoutService
 
@@ -46,7 +46,7 @@ export class WorkoutService {
 
         // validate input
         const body = req.body as WorkoutReqBody
-        if(!validateReqParam(body)){
+        if(!body?.date || !body?.sets){
             res.status(400).send(BadRequestError)
             return
         }
@@ -121,7 +121,7 @@ export class WorkoutService {
 
         // validate input
         const body = req.body as WorkoutReqBody
-        if(!validateDate(req.params?.date) || !validateReqParam(body)){
+        if(!validateDate(req.params?.date) || !body?.date || !body?.sets){
             res.status(400).send(BadRequestError)
             return
         }
