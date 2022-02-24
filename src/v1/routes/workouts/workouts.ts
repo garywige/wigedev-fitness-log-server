@@ -12,7 +12,7 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 router.get('/:date', async (req: Request, res: Response) => {
-    console.log('GET /v1/workout/{date}')
+    await WorkoutService.instance.getWorkoutFromDate(req, res)
 })
 
 router.put('/:date', async (req: Request, res: Response) => {
