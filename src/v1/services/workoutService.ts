@@ -114,6 +114,44 @@ export class WorkoutService {
 
         res.status(200).send(output)
     }
+
+    async putWorkout(req: Request, res: Response){
+        // verify auth
+
+        // validate input
+        const body = req.body as WorkoutReqBody
+        if(!/^[0-9]{8}$/.test(req.params?.date) || !body?.date || !body?.sets){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // format output
+        const output = {
+            date: '20220223',
+            sets: [
+                {
+                    id: 1337,
+                    exercise: {
+                        id: 1337,
+                        name: 'Bench Press'
+                    },
+                    weight: 135,
+                    unit: 'lbs',
+                    repsPrescribed: 10,
+                    repsPerformed: 0
+                }
+            ]
+        }
+
+        res.status(200).send(output)
+    }
 }
 
 interface WorkoutReqBody {

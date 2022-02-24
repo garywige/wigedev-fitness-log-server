@@ -16,7 +16,7 @@ router.get('/:date', async (req: Request, res: Response) => {
 })
 
 router.put('/:date', async (req: Request, res: Response) => {
-    console.log('PUT /v1/workout/{date}')
+    await WorkoutService.instance.putWorkout(req, res)
 })
 
 router.delete('/:date', async (req: Request, res: Response) => {
