@@ -20,4 +20,12 @@ describe('ExerciseService', () => {
     it('should create', () => {
         expect(testSubject).toBeTruthy()
     })
+
+    describe('getExercises()', () => {
+    
+        it('should set status 200', () => {
+            testSubject.getExercises(req, res)
+            expect(res.status).toHaveBeenCalledWith(200)
+        })
+    })
 })
