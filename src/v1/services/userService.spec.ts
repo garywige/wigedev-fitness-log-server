@@ -20,19 +20,21 @@ describe('UserService', () => {
 
         beforeEach(async () => {
 
-            // create mock request
-            req = jasmine.createSpyObj('Request', {}, { body: { email: 'test@test.com', password: 'password'}})
-
             // create mock response
             res = jasmine.createSpyObj('Response', ['send', 'status'])
             res.status = jasmine.createSpy().and.returnValue(res)
-
-            // call the method
-            await testSubject.postSignin(req, res)
         })
 
-        it('should call status with 200 when request is valid', () => {
+        it('should call status with 200 when request body is valid', () => {
+            req = jasmine.createSpyObj('Request', {}, { body: { email: 'test@test.com', password: 'password'}})
+            testSubject.postSignin(req, res)
             expect(res.status).toHaveBeenCalledWith(200)
+        })
+
+        it('should call status with 400 when request body is invalid', () => {
+            req = jasmine.createSpyObj('Request', {}, { body: { email: 'test@test.com', bad: 'test'}})
+            testSubject.postSignin(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
         })
     })
 
