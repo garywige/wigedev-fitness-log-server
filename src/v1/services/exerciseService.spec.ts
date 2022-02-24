@@ -56,4 +56,24 @@ describe('ExerciseService', () => {
             expect(res.status).toHaveBeenCalledWith(400)
         })
     })
+
+    describe('putExercise()', () => {
+        it('should set status 200 with valid input', () => {
+            req = jasmine.createSpyObj('Request', {}, {body: {name: 'test'}, params: { id: 1}})
+            testSubject.putExercise(req, res)
+            expect(res.status).toHaveBeenCalledWith(200)
+        })
+
+        it('should set status 400 with invalid req body', () => {
+            req = jasmine.createSpyObj('Request', {}, {body: {invalid: 'test'}, params: { id: 1}})
+            testSubject.putExercise(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
+        })
+
+        it('should set status 400 with invalid param', () => {
+            req = jasmine.createSpyObj('Request', {}, {body: {name: 'test'}, params: {invalid: 'test'}})
+            testSubject.putExercise(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
+        })
+    })
 })
