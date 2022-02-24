@@ -12,7 +12,7 @@
     "style:fix": "npx prettier --write 'src/**'",
     "lint": "npx eslint src/**",
     "lint:fix": "npx eslint src/** --fix",
-    "test": "npx jasmine \"dist/**.spec.js\""
+    "test": "npx jasmine \"dist/**/**.spec.js\""
   },
   "repository": {
     "type": "git",
