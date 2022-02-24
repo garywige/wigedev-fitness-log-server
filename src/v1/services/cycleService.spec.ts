@@ -43,4 +43,18 @@ describe('CycleService', () => {
             expect(res.status).toHaveBeenCalledWith(400)
         })
     })
+
+    describe('getCycleFromId()', () => {
+        it('should set response status to 200 when called with valid input', () => {
+            req = jasmine.createSpyObj('Request', {}, { params: { id: 1 }})
+            testSubject.getCycleFromId(req, res)
+            expect(res.status).toHaveBeenCalledWith(200)
+        })
+
+        it('should set response status to 400 when called with invalid input', () => {
+            req = jasmine.createSpyObj('Request', {}, { params: { bad: 1 }})
+            testSubject.getCycleFromId(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
+        })
+    })
 })
