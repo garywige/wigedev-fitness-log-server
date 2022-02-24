@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { InternalServerError } from "./responses"
+import { BadRequestError, InternalServerError } from "./responses"
 export class ExerciseService {
     private static _instance: ExerciseService
 
@@ -39,4 +39,35 @@ export class ExerciseService {
 
         res.status(200).send(output)
     }
+
+    async postExercises(req: Request, res: Response) {
+
+        // verify auth
+
+        // validate input
+        const body = req.body as ExerciseReqBody
+        if(!body?.name){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // format output
+        const output = {
+            id: 1337,
+            name: 'Bench Press'
+        }
+
+        res.status(201).send(output)
+    }
+}
+
+interface ExerciseReqBody {
+    name: string
 }
