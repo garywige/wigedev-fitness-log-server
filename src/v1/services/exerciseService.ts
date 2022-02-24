@@ -92,6 +92,33 @@ export class ExerciseService {
 
         res.status(200).send(output)
     }
+
+    async putExercise(req: Request, res: Response){
+
+        // verify auth
+
+        // validate input
+        const body = req.body as ExerciseReqBody
+        if(!/^[0-9]+$/.test(req.params.toString()) || !body?.name){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // format output
+        const output = {
+            id: 1337,
+            name: 'Bench Press'
+        }
+
+        res.status(200).send(output)
+    }
 }
 
 interface ExerciseReqBody {

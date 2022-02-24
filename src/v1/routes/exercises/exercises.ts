@@ -16,7 +16,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 })
 
 router.put('/:id', async (req: Request, res: Response) => {
-    console.log('PUT /v1/exercise/{id}')
+    await ExerciseService.instance.putExercise(req, res)
 })
 
 router.delete('/:id', async (req: Request, res: Response) => {
