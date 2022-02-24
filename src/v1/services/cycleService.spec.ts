@@ -86,4 +86,18 @@ describe('CycleService', () => {
             expect(res.status).toHaveBeenCalledWith(400)
         })
     })
+
+    describe('deleteCycle()', () => {
+        it('should set response status to 200 with valid parameter', () => {
+            req = jasmine.createSpyObj('Request', {}, { params: { id: 1}})
+            testSubject.deleteCycle(req, res)
+            expect(res.status).toHaveBeenCalledWith(200)
+        })
+
+        it('should set response status to 400 with invalid parameter', () => {
+            req = jasmine.createSpyObj('Request', {}, { params: { invalid: 1}})
+            testSubject.deleteCycle(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
+        })
+    })
 })
