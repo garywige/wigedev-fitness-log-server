@@ -20,7 +20,7 @@ router.put('/:date', async (req: Request, res: Response) => {
 })
 
 router.delete('/:date', async (req: Request, res: Response) => {
-    console.log('DELETE /v1/workout/{date}')
+    await WorkoutService.instance.deleteWorkout(req, res)
 })
 
 export default router
