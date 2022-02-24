@@ -8,7 +8,7 @@ router.get('/', async (req: Request, res: Response) => {
 })
 
 router.post('/', async (req: Request, res: Response) => {
-    console.log('POST /v1/workouts')
+    await WorkoutService.instance.postWorkouts(req, res)
 })
 
 router.get('/:date', async (req: Request, res: Response) => {

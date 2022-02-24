@@ -39,4 +39,60 @@ export class WorkoutService {
 
         res.status(200).send(output)
     }
+
+    async postWorkouts(req: Request, res: Response){
+        // verify auth
+
+        // validate input
+        const body = req.body as WorkoutReqBody
+        if(!body?.date || !body?.sets){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // format output
+        const output = {
+            date: '20220223',
+            sets: [
+                {
+                    id: 1337,
+                    exercise: {
+                        id: 1337,
+                        name: 'Bench Press'
+                    },
+                    weight: 135,
+                    unit: 'lbs',
+                    repsPrescribed: 10,
+                    repsPerformed: 0
+                }
+            ]
+        }
+
+        res.status(201).send(output)
+    }
+}
+
+interface WorkoutReqBody {
+    date: string
+    sets: SetReqBody[]
+}
+
+interface SetReqBody {
+    exerciseId: number
+    weight: number
+    unit: Unit
+    repsPrescribed: number
+    repsPerformed: number | null
+}
+
+enum Unit {
+    Lbs = 'lbs',
+    KG = 'kg'
 }
