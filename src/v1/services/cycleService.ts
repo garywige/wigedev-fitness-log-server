@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { BadRequestError, InternalServerError, ServerMessage } from "./responses"
+import { validateInt, validateReqParam } from "./validation"
 
 export class CycleService {
     private static _instance: CycleService
@@ -45,7 +46,7 @@ export class CycleService {
 
         // validate input
         const body = req.body as CyclesReqBody
-        if(!body?.name) {
+        if(!validateReqParam(body)) {
             res.status(400).send(BadRequestError)
             return
         }
@@ -73,7 +74,7 @@ export class CycleService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]+$/.test(req.params.toString())){
+        if(!validateInt(req.params?.id)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -101,7 +102,7 @@ export class CycleService {
 
         // validate input
         const body = req.body as CyclesReqBody
-        if(!/^[0-9]+$/.test(req.params.toString()) || !body.name){
+        if(!validateInt(req.params?.id) || !validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -129,7 +130,7 @@ export class CycleService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]+$/.test(req.params.toString())){
+        if(!validateInt(req.params?.id)){
             res.status(400).send(BadRequestError)
             return
         }

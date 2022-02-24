@@ -1,5 +1,6 @@
 import { Response, Request } from 'express'
 import { BadRequestError, UnauthorizedError, InternalServerError } from './responses'
+import { validateReqParam } from './validation'
 
 export class UserService {
     private static _instance: UserService
@@ -19,13 +20,13 @@ export class UserService {
         
         // validate request body
         const body = req.body as SigninReqBody
-        if(!body?.email || !body?.password){
+        if(!validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // generate token, send 401 if it fails
+            // business logic
         } catch {
             // handle
             res.status(500).send(InternalServerError)
@@ -44,7 +45,7 @@ export class UserService {
 
         // validate request body
         const body = req.body as SignupReqBody
-        if(!body?.email || !body?.password || !body?.accountType){
+        if(!validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }

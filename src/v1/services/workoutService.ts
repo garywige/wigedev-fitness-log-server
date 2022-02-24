@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { BadRequestError, InternalServerError, ServerMessage } from "./responses"
+import { validateDate, validateInt, validateReqParam } from "./validation"
 export class WorkoutService {
     private static _instance: WorkoutService
 
@@ -19,7 +20,7 @@ export class WorkoutService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]+$/.test(req.query?.cycle?.toString())){
+        if(!validateInt(req.query?.cycle as string)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -45,7 +46,7 @@ export class WorkoutService {
 
         // validate input
         const body = req.body as WorkoutReqBody
-        if(!body?.date || !body?.sets){
+        if(!validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -82,7 +83,7 @@ export class WorkoutService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]{8}$/.test(req.params?.date)){
+        if(!validateDate(req.params?.date)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -120,7 +121,7 @@ export class WorkoutService {
 
         // validate input
         const body = req.body as WorkoutReqBody
-        if(!/^[0-9]{8}$/.test(req.params?.date) || !body?.date || !body?.sets){
+        if(!validateDate(req.params?.date) || !validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -157,7 +158,7 @@ export class WorkoutService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]{8}$/.test(req.params?.date)){
+        if(!validateDate(req.params?.date)){
             res.status(400).send(BadRequestError)
             return
         }

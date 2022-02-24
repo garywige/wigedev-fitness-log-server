@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { BadRequestError, InternalServerError, ServerMessage } from "./responses"
+import { validateInt, validateReqParam } from "./validation"
 export class ExerciseService {
     private static _instance: ExerciseService
 
@@ -46,7 +47,7 @@ export class ExerciseService {
 
         // validate input
         const body = req.body as ExerciseReqBody
-        if(!body?.name){
+        if(!validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -72,7 +73,7 @@ export class ExerciseService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]+$/.test(req.params.toString())){
+        if(!validateInt(req.params?.id)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -99,7 +100,7 @@ export class ExerciseService {
 
         // validate input
         const body = req.body as ExerciseReqBody
-        if(!/^[0-9]+$/.test(req.params.toString()) || !body?.name){
+        if(!validateInt(req.params?.id) || !validateReqParam(body)){
             res.status(400).send(BadRequestError)
             return
         }
@@ -125,7 +126,7 @@ export class ExerciseService {
         // verify auth
 
         // validate input
-        if(!/^[0-9]+$/.test(req.params.toString())){
+        if(!validateInt(req.params?.id)){
             res.status(400).send(BadRequestError)
             return
         }
