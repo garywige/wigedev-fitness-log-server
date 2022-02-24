@@ -57,4 +57,33 @@ describe('CycleService', () => {
             expect(res.status).toHaveBeenCalledWith(400)
         })
     })
+
+    describe('putCycleFromId()', () => {
+        it('should set response status to 200 when called with valid input', () => {
+            req = jasmine.createSpyObj('Request', {}, { 
+                body: { name: 'test'},
+                params: { id: 1 }
+            })
+            testSubject.putCycleFromId(req, res)
+            expect(res.status).toHaveBeenCalledWith(200)
+        })
+
+        it('should set response status to 400 when called with invalid request body', () => {
+            req = jasmine.createSpyObj('Request', {}, { 
+                body: { invalid: 'test'},
+                params: { id: 1 }
+            })
+            testSubject.putCycleFromId(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
+        })
+
+        it('should set response status to 400 when called with invalid parameter', () => {
+            req = jasmine.createSpyObj('Request', {}, { 
+                body: { name: 'test'},
+                params: { invalid: 1 }
+            })
+            testSubject.putCycleFromId(req, res)
+            expect(res.status).toHaveBeenCalledWith(400)
+        })
+    })
 })
