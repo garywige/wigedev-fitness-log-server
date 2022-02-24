@@ -5,7 +5,7 @@ export class ExerciseService {
     private static _instance: ExerciseService
 
     private constructor(){
-        console.log('ExerciseService instantiating...')
+        console.log('ExerciseService instantiated...')
     }
 
     static get instance() : ExerciseService {
