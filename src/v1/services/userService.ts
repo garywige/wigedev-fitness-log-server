@@ -1,6 +1,7 @@
 import { Response, Request } from 'express'
 import { Database } from '../../database/database'
 import { BadRequestError, InternalServerError } from './responses'
+import * as bcrypt from 'bcrypt'
 
 export class UserService {
     private static _instance: UserService
@@ -49,19 +50,9 @@ export class UserService {
 
         try {
             // create new user account
-            const salt = ''
-            const hash = ''
-            const db = Database.instance.db
-            db.collection('users').insertOne({
-                email: body.email,
-                hash: hash,
-                salt: salt,
-                role: 'free',
-                created: new Date(),
-                emailVerified: false
-            })
+            await this.createUser(body)
 
-            // initiate email verification
+            // initiate email verification depending on accountType
 
         } catch {
             res.status(500).send(InternalServerError)
@@ -70,10 +61,24 @@ export class UserService {
 
         // create output object
         const output = {
-            email: 'test@test.com',
+            email: body?.email,
         }
 
         res.status(201).send(output)
+    }
+
+    private async createUser(body: SignupReqBody){
+        const salt = await bcrypt.genSalt()
+            const hash = await bcrypt.hash(body?.password, salt)
+            const db = Database.instance.db
+            db.collection('users').insertOne({
+                email: body?.email,
+                hash: hash,
+                salt: salt,
+                role: 'free',
+                created: new Date(),
+                emailVerified: false
+            })
     }
 }
 
