@@ -1,15 +1,26 @@
-'use strict'
+const { isDoStatement } = require("typescript")
 
+// empty current contents of database
+use wfl
+db.dropDatabase()
+
+// create tables
 db.createCollection('users', {
     validator: {
         $jsonSchema: {
             bsonType: 'object',
-            required: ['email', 'password', 'created', 'paidThrough', 'emailVerified'],
+            required: ['email', 'hash', 'salt', 'role', 'created', 'emailVerified'],
             properties: {
                 email: {
                     bsonType: 'string'
                 },
-                password: {
+                hash: {
+                    bsonType: 'string'
+                },
+                salt: {
+                    bsonType: 'string'
+                },
+                role: {
                     bsonType: 'string'
                 },
                 created: {
@@ -105,4 +116,3 @@ db.createCollection('sets', {
         }
     }
 })
-
