@@ -1,7 +1,6 @@
 import { Response, Request } from 'express'
 import {
     BadRequestError,
-    UnauthorizedError,
     InternalServerError,
 } from './responses'
 
