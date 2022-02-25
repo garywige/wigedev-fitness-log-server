@@ -1,6 +1,6 @@
 import { Response, Request } from 'express'
 import { Database } from '../../database/database'
-import { BadRequestError, InternalServerError } from './responses'
+import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import * as bcrypt from 'bcrypt'
 
 export class UserService {
@@ -25,7 +25,11 @@ export class UserService {
         }
 
         try {
-            // business logic
+            // compare credentials with db user
+            if(!this.compareCredentials(body)){
+                res.status(401).send(UnauthorizedError)
+            }
+
         } catch {
             // handle
             res.status(500).send(InternalServerError)
@@ -79,6 +83,14 @@ export class UserService {
                 created: new Date(),
                 emailVerified: false
             })
+    }
+
+    private async compareCredentials(body: SigninReqBody): Promise<boolean> {
+        const db = Database.instance.db
+        const account = await db.collection('users').findOne({ email: body?.email}, { projection: { _id: 0, hash: 1, salt: 1}})
+        
+        const hash = await bcrypt.hash(body?.password, account?.salt)
+        return hash === account?.hash
     }
 }
 
