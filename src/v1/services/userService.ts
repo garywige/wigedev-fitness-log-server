@@ -2,6 +2,7 @@ import { Response, Request } from 'express'
 import { Database } from '../../database/database'
 import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import * as bcrypt from 'bcrypt'
+import * as jwt from 'jsonwebtoken'
 
 export class UserService {
     private static _instance: UserService
@@ -24,14 +25,19 @@ export class UserService {
             return
         }
 
+        let token = ''
         try {
             // compare credentials with db user
-            if(!this.compareCredentials(body)){
+            if(! await this.compareCredentials(body)){
                 res.status(401).send(UnauthorizedError)
                 return
             }
 
+            // determine role
+            const role = await this.getRole(body?.email)
+
             // generate token
+            token = await this.generateToken(body?.email, role)
 
         } catch {
             // handle
@@ -41,7 +47,7 @@ export class UserService {
 
         // create output object
         const output = {
-            accessToken: 'asdf1234asdf1234',
+            accessToken: token,
         }
 
         res.status(200).send(JSON.stringify(output))
@@ -92,12 +98,28 @@ export class UserService {
         const db = Database.instance.db
         const account = await db.collection('users').findOne({ email: body?.email.toLowerCase()}, { projection: { _id: 0, hash: 1, salt: 1}})
         
+        // account doesn't exist?
+        if(!account) return false
+
         const hash = await bcrypt.hash(body?.password, account?.salt)
         return hash === account?.hash
     }
 
-    private async generateToken(email: string): Promise<string> {
-        
+    private async generateToken(email: string, role: string): Promise<string> {
+        const payload = {
+            email: email,
+            role: role
+        }
+
+        return jwt.sign(payload, 'ChangeMe2022', {
+            expiresIn: '1d'
+        })
+    }
+
+    private async getRole(email: string) : Promise<AccountType> {
+        const db = Database.instance.db
+        const row = await db.collection('users').findOne({ email: email}, { projection: { _id: 0, role: 1}})
+        return row?.role as AccountType
     }
 }
 
