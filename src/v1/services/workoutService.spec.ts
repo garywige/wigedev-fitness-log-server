@@ -1,8 +1,7 @@
-import { Request, Response } from "express"
-import { WorkoutService } from "./workoutService"
+import { Request, Response } from 'express'
+import { WorkoutService } from './workoutService'
 
 describe('WorkoutService', () => {
-
     let testSubject: WorkoutService
     let valid: Request
     let invalid: Request
@@ -20,8 +19,12 @@ describe('WorkoutService', () => {
 
     describe('getWorkouts()', () => {
         beforeAll(() => {
-            valid = jasmine.createSpyObj('Request', {}, {query: {cycle: 1}})
-            invalid = jasmine.createSpyObj('Request', {}, {query: {invalid: 'test'}})
+            valid = jasmine.createSpyObj('Request', {}, { query: { cycle: 1 } })
+            invalid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { query: { invalid: 'test' } }
+            )
         })
 
         it('should set status 200 with valid query', () => {
@@ -37,13 +40,21 @@ describe('WorkoutService', () => {
 
     describe('postWorkouts()', () => {
         it('should set status 201 with valid input', () => {
-            valid = jasmine.createSpyObj('Request', {}, { body: { date: '11111111', sets: ['test', 'test']}})
+            valid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { body: { date: '11111111', sets: ['test', 'test'] } }
+            )
             testSubject.postWorkouts(valid, res)
             expect(res.status).toHaveBeenCalledWith(201)
         })
 
         it('should set status 400 with invalid input', () => {
-            invalid = jasmine.createSpyObj('Request', {}, { body: {date: '11111111', invalid: 'test'}})
+            invalid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { body: { date: '11111111', invalid: 'test' } }
+            )
             testSubject.postWorkouts(invalid, res)
             expect(res.status).toHaveBeenCalledWith(400)
         })
@@ -51,13 +62,21 @@ describe('WorkoutService', () => {
 
     describe('getWorkoutFromDate()', () => {
         it('should set status 200 with valid param', () => {
-            valid = jasmine.createSpyObj('Request', {}, {params: { date: '11111111'}})
+            valid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { params: { date: '11111111' } }
+            )
             testSubject.getWorkoutFromDate(valid, res)
             expect(res.status).toHaveBeenCalledWith(200)
         })
 
         it('should set status 400 with invalid param', () => {
-            invalid = jasmine.createSpyObj('Request', {}, {params: { invalid: 'test'}})
+            invalid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { params: { invalid: 'test' } }
+            )
             testSubject.getWorkoutFromDate(invalid, res)
             expect(res.status).toHaveBeenCalledWith(400)
         })
@@ -65,19 +84,31 @@ describe('WorkoutService', () => {
 
     describe('putWorkout()', () => {
         it('should set status 200 with valid input', () => {
-            valid = jasmine.createSpyObj('Request', {}, {body: { sets: ['test']}, params: {date: '11111111'}})
+            valid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { body: { sets: ['test'] }, params: { date: '11111111' } }
+            )
             testSubject.putWorkout(valid, res)
             expect(res.status).toHaveBeenCalledWith(200)
         })
 
         it('should set status 400 with invalid param', () => {
-            invalid = jasmine.createSpyObj('Request', {}, {body: {sets: ['test']}, params: {invalid: 'test'}})
+            invalid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { body: { sets: ['test'] }, params: { invalid: 'test' } }
+            )
             testSubject.putWorkout(invalid, res)
             expect(res.status).toHaveBeenCalledWith(400)
         })
 
         it('should set status 400 with invalid req body', () => {
-            invalid = jasmine.createSpyObj('Request', {}, {body: {invalid: 'test'}, params: {date: '11111111'}})
+            invalid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { body: { invalid: 'test' }, params: { date: '11111111' } }
+            )
             testSubject.putWorkout(invalid, res)
             expect(res.status).toHaveBeenCalledWith(400)
         })
@@ -85,13 +116,21 @@ describe('WorkoutService', () => {
 
     describe('deleteWorkout()', () => {
         it('should set status 200 with valid input', () => {
-            valid = jasmine.createSpyObj('Request', {}, {params: {date: '11111111'}})
+            valid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { params: { date: '11111111' } }
+            )
             testSubject.deleteWorkout(valid, res)
             expect(res.status).toHaveBeenCalledWith(200)
         })
 
         it('should set status 400 with invalid input', () => {
-            invalid = jasmine.createSpyObj('Request', {}, {params: {invalid: 'test'}})
+            invalid = jasmine.createSpyObj(
+                'Request',
+                {},
+                { params: { invalid: 'test' } }
+            )
             testSubject.deleteWorkout(invalid, res)
             expect(res.status).toHaveBeenCalledWith(400)
         })

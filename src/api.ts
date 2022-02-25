@@ -1,7 +1,6 @@
 import { Router } from 'express'
 import v1 from './v1/index'
 
-
 const api = Router()
 
 // Configure all routes here

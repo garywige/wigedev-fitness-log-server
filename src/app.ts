@@ -8,10 +8,13 @@ const app = express()
 
 app.use(cors())
 app.use(express.json())
-app.use(express.urlencoded({ extended: true}))
+app.use(express.urlencoded({ extended: true }))
 app.use(logger('dev'))
 
-app.use('/', express.static(path.join(__dirname, './public'), { redirect: false }))
+app.use(
+    '/',
+    express.static(path.join(__dirname, './public'), { redirect: false })
+)
 
 app.use(api)
 

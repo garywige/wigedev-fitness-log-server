@@ -1,25 +1,27 @@
 import { Response, Request } from 'express'
-import { BadRequestError, UnauthorizedError, InternalServerError } from './responses'
+import {
+    BadRequestError,
+    UnauthorizedError,
+    InternalServerError,
+} from './responses'
 
 export class UserService {
     private static _instance: UserService
 
-    private constructor(){
+    private constructor() {
         console.log('UserService instantiated...')
     }
 
-    static get instance() : UserService {
-        if(!this._instance)
-            this._instance = new UserService()
+    static get instance(): UserService {
+        if (!this._instance) this._instance = new UserService()
 
         return this._instance
     }
 
     async postSignin(req: Request, res: Response) {
-        
         // validate request body
         const body = req.body as SigninReqBody
-        if(!body?.email || !body?.password){
+        if (!body?.email || !body?.password) {
             res.status(400).send(BadRequestError)
             return
         }
@@ -34,17 +36,16 @@ export class UserService {
 
         // create output object
         const output = {
-            accessToken: 'asdf1234asdf1234'
+            accessToken: 'asdf1234asdf1234',
         }
 
         res.status(200).send(JSON.stringify(output))
     }
 
     async postSignup(req: Request, res: Response) {
-
         // validate request body
         const body = req.body as SignupReqBody
-        if(!body?.email || !body?.password || !body?.accountType){
+        if (!body?.email || !body?.password || !body?.accountType) {
             res.status(400).send(BadRequestError)
             return
         }
@@ -58,7 +59,7 @@ export class UserService {
 
         // create output object
         const output = {
-            email: 'test@test.com'
+            email: 'test@test.com',
         }
 
         res.status(201).send(output)
@@ -71,8 +72,8 @@ interface SigninReqBody {
 }
 
 enum AccountType {
-    Free = "free",
-    Pro = "pro"
+    Free = 'free',
+    Pro = 'pro',
 }
 
 interface SignupReqBody {
