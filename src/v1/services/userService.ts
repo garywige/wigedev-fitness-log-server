@@ -1,4 +1,5 @@
 import { Response, Request } from 'express'
+import { Database } from '../../database/database'
 import { BadRequestError, InternalServerError } from './responses'
 
 export class UserService {
@@ -47,7 +48,21 @@ export class UserService {
         }
 
         try {
-            // business logic
+            // create new user account
+            const salt = ''
+            const hash = ''
+            const db = Database.instance.db
+            db.collection('users').insertOne({
+                email: body.email,
+                hash: hash,
+                salt: salt,
+                role: 'free',
+                created: new Date(),
+                emailVerified: false
+            })
+
+            // initiate email verification
+
         } catch {
             res.status(500).send(InternalServerError)
             return
