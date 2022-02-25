@@ -1,8 +1,5 @@
 import { Response, Request } from 'express'
-import {
-    BadRequestError,
-    InternalServerError,
-} from './responses'
+import { BadRequestError, InternalServerError } from './responses'
 
 export class UserService {
     private static _instance: UserService
