@@ -84,6 +84,11 @@ export class UserService {
         const salt = await bcrypt.genSalt()
             const hash = await bcrypt.hash(body?.password, salt)
             const db = Database.instance.db
+
+            // validate that the account doesn't already exist
+            if(await db.collection('users').findOne({ email: body?.email}))
+                throw Error('account already exists with this email address.')
+
             db.collection('users').insertOne({
                 email: body?.email.toLowerCase(),
                 hash: hash,
