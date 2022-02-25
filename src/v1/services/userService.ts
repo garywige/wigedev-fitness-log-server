@@ -28,7 +28,10 @@ export class UserService {
             // compare credentials with db user
             if(!this.compareCredentials(body)){
                 res.status(401).send(UnauthorizedError)
+                return
             }
+
+            // generate token
 
         } catch {
             // handle
@@ -76,7 +79,7 @@ export class UserService {
             const hash = await bcrypt.hash(body?.password, salt)
             const db = Database.instance.db
             db.collection('users').insertOne({
-                email: body?.email,
+                email: body?.email.toLowerCase(),
                 hash: hash,
                 salt: salt,
                 role: 'free',
@@ -87,10 +90,14 @@ export class UserService {
 
     private async compareCredentials(body: SigninReqBody): Promise<boolean> {
         const db = Database.instance.db
-        const account = await db.collection('users').findOne({ email: body?.email}, { projection: { _id: 0, hash: 1, salt: 1}})
+        const account = await db.collection('users').findOne({ email: body?.email.toLowerCase()}, { projection: { _id: 0, hash: 1, salt: 1}})
         
         const hash = await bcrypt.hash(body?.password, account?.salt)
         return hash === account?.hash
+    }
+
+    private async generateToken(email: string): Promise<string> {
+        
     }
 }
 
