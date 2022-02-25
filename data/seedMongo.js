@@ -1,7 +1,4 @@
-const { isDoStatement } = require("typescript")
-
 // empty current contents of database
-use wfl
 db.dropDatabase()
 
 // create tables
