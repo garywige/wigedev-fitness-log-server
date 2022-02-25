@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb'
+import { Db, MongoClient } from 'mongodb'
 
 export class Database {
     readonly uri = 'mongodb://localhost:27017'
@@ -18,13 +18,14 @@ export class Database {
         return this._instance
     }
 
-    get client(): MongoClient {
-        return this._client
+    get db() : Db {
+        return this._client.db('wfl')
     }
 
-    private connect(){
+    private async connect(){
         try {
             this._client = new MongoClient(this.uri)
+            await this._client.connect()
         } catch {
             console.log('Error: failed to connect to database.')
         }
