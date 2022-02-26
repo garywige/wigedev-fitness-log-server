@@ -2,7 +2,7 @@ import { Response, Request } from 'express'
 import { Database } from '../../database/database'
 import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import * as bcrypt from 'bcrypt'
-import * as jwt from 'jsonwebtoken'
+import { TokenService } from './tokenService'
 
 export class UserService {
     private static _instance: UserService
@@ -37,7 +37,7 @@ export class UserService {
             const role = await this.getRole(body?.email)
 
             // generate token
-            token = await this.generateToken(body?.email, role)
+            token = await TokenService.instance.generateToken(body?.email, role)
 
         } catch {
             // handle
@@ -108,17 +108,6 @@ export class UserService {
 
         const hash = await bcrypt.hash(body?.password, account?.salt)
         return hash === account?.hash
-    }
-
-    private async generateToken(email: string, role: string): Promise<string> {
-        const payload = {
-            email: email,
-            role: role
-        }
-
-        return jwt.sign(payload, process.env['JWT_SECRET'] ?? '', {
-            expiresIn: '1d'
-        })
     }
 
     private async getRole(email: string) : Promise<AccountType> {
