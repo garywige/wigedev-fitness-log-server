@@ -116,11 +116,11 @@ export class ExerciseService {
             output.name = row?.name
 
             // verify that user is authorized to access this exercise
-            if(tokenPackage?.id !== row?.user_id){
+            if(tokenPackage?.id !== row?.user_id?.toHexString()){
                 res.status(401).send(UnauthorizedError)
                 return
             }
-            
+
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -131,16 +131,30 @@ export class ExerciseService {
 
     async putExercise(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as ExerciseReqBody
-        if (!validateInt(req.params?.id) || !body?.name) {
+        if (!req.params?.id || !body?.name) {
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // business logic
+            // verify that exercise belongs to user
+            const db = Database.instance.db
+            const row = await db.collection('exercises').findOne({ _id: new ObjectId(req.params?.id)}, { projection: { _id: 0, user_id: 1 }})
+            if(row?.user_id?.toHexString() !== tokenPackage?.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // update the exercise
+            await db.collection('exercises').updateOne({ _id: new ObjectId(req.params?.id)}, { $set: { name: body?.name }})
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -148,8 +162,8 @@ export class ExerciseService {
 
         // format output
         const output = {
-            id: 1337,
-            name: 'Bench Press',
+            id: req.params?.id,
+            name: body?.name,
         }
 
         res.status(200).send(output)
