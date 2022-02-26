@@ -116,7 +116,7 @@ export class UserService {
             role: role
         }
 
-        return jwt.sign(payload, 'ChangeMe2022', {
+        return jwt.sign(payload, 'secret', {
             expiresIn: '1d'
         })
     }

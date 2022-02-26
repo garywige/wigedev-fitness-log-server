@@ -3,8 +3,11 @@ import {
     BadRequestError,
     InternalServerError,
     ServerMessage,
+    UnauthorizedError,
 } from './responses'
 import { validateInt } from './validation'
+import * as jwt from 'jsonwebtoken'
+
 export class ExerciseService {
     private static _instance: ExerciseService
 
@@ -22,9 +25,19 @@ export class ExerciseService {
 
     async getExercises(req: Request, res: Response) {
         // verify auth
+        let token: string
+        let userInfo: any
+        try{
+            token = req?.headers?.authorization?.split(' ')[1] ?? ''
+            userInfo = jwt.verify(token, 'secret')
+        } catch {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         try {
             // business logic
+            console.log(JSON.stringify(userInfo))
         } catch {
             res.status(500).send(InternalServerError)
             return
