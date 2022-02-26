@@ -1,5 +1,6 @@
+import { ObjectID } from 'bson'
 import { Request, Response } from 'express'
-import { FindCursor, ObjectId } from 'mongodb'
+import { FindCursor, InsertOneResult, ObjectId } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
@@ -57,6 +58,11 @@ export class ExerciseService {
 
     async postExercises(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as ExerciseReqBody
@@ -65,17 +71,20 @@ export class ExerciseService {
             return
         }
 
+        let document: InsertOneResult
         try {
             // business logic
-        } catch {
+            const db = Database.instance.db
+            document = await db.collection('exercises').insertOne({ user_id: new ObjectID(tokenPackage.id), name: body?.name})
+        } catch (e){
             res.status(500).send(InternalServerError)
             return
         }
 
         // format output
         const output = {
-            id: 1337,
-            name: 'Bench Press',
+            id: document.insertedId,
+            name: body?.name,
         }
 
         res.status(201).send(output)
