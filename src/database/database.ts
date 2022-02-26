@@ -1,7 +1,7 @@
 import { Db, MongoClient } from 'mongodb'
 
 export class Database {
-    readonly uri = 'mongodb://localhost:27017'
+    readonly uri = process.env['CONNECTION_STRING'] ?? ''
     private _client: MongoClient
     private static _instance: Database
 

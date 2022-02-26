@@ -29,7 +29,7 @@ export class ExerciseService {
         let userInfo: any
         try{
             token = req?.headers?.authorization?.split(' ')[1] ?? ''
-            userInfo = jwt.verify(token, 'secret')
+            userInfo = jwt.verify(token, process.env['JWT_SECRET'] ?? '')
         } catch {
             res.status(401).send(UnauthorizedError)
             return

@@ -116,7 +116,7 @@ export class UserService {
             role: role
         }
 
-        return jwt.sign(payload, 'secret', {
+        return jwt.sign(payload, process.env['JWT_SECRET'] ?? '', {
             expiresIn: '1d'
         })
     }
