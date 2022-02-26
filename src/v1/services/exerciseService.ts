@@ -1,4 +1,6 @@
 import { Request, Response } from 'express'
+import { FindCursor, ObjectId } from 'mongodb'
+import { Database } from '../../database/database'
 import {
     BadRequestError,
     InternalServerError,
@@ -31,23 +33,23 @@ export class ExerciseService {
             return
         }
 
+        let exercises: FindCursor
+        const output = {
+            exercises: []
+        }
+
         try {
-            // business logic
-            console.log(JSON.stringify(tokenPackage))
+            // get exercises associated with this user
+            exercises = await this.findExercises(tokenPackage.id)
+
+            // grab workout count for each workout
+            exercises.forEach(doc => {
+                output.exercises.push({id: doc._id, name: doc.name, workoutCount: this.getSetCount(doc._id)})
+            })
+
         } catch {
             res.status(500).send(InternalServerError)
             return
-        }
-
-        // format output
-        const output = {
-            exercises: [
-                {
-                    id: 1337,
-                    name: 'Bench Press',
-                    workoutCount: 37,
-                },
-            ],
         }
 
         res.status(200).send(output)
@@ -148,6 +150,16 @@ export class ExerciseService {
 
         // format output
         res.status(200).send(new ServerMessage('1 row(s) deleted successfully'))
+    }
+
+    private async findExercises(id: ObjectId){
+        const db = Database.instance.db
+        return await db.collection('exercises').find({ user_id: id}, { projection: { _id: 1, name: 1}})
+    }
+
+    private async getSetCount(exercise_id: ObjectId): Promise<number> {
+        const db = Database.instance.db
+        return await db.collection('sets').countDocuments({ exercise_id: exercise_id})
     }
 }
 
