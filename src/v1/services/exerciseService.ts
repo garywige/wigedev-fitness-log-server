@@ -92,6 +92,11 @@ export class ExerciseService {
 
     async getExerciseFromId(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         if (!req.params?.id) {
@@ -106,9 +111,16 @@ export class ExerciseService {
         try {
             // get the exercise
             const db = Database.instance.db
-            const row = await db.collection('exercises').findOne({ _id: new ObjectId(req.params?.id)}, { projection: {_id: 1, name: 1}})
+            const row = await db.collection('exercises').findOne({ _id: new ObjectId(req.params?.id)}, { projection: {_id: 1, user_id: 1, name: 1}})
             output.id = row?._id.toHexString()
             output.name = row?.name
+
+            // verify that user is authorized to access this exercise
+            if(tokenPackage?.id !== row?.user_id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+            
         } catch {
             res.status(500).send(InternalServerError)
             return
