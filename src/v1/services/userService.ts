@@ -3,6 +3,7 @@ import { Database } from '../../database/database'
 import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import * as bcrypt from 'bcrypt'
 import { TokenService } from './tokenService'
+import { ObjectId } from 'mongodb'
 
 export class UserService {
     private static _instance: UserService
@@ -33,11 +34,14 @@ export class UserService {
                 return
             }
 
+            // get userId
+            const id = await this.getId(body?.email)
+
             // determine role
             const role = await this.getRole(body?.email)
 
             // generate token
-            token = await TokenService.instance.generateToken(body?.email, role)
+            token = await TokenService.instance.generateToken(id, body?.email, role)
 
         } catch {
             // handle
@@ -114,6 +118,12 @@ export class UserService {
         const db = Database.instance.db
         const row = await db.collection('users').findOne({ email: email}, { projection: { _id: 0, role: 1}})
         return row?.role as AccountType
+    }
+
+    private async getId(email: string) : Promise<ObjectId> {
+        const db = Database.instance.db
+        const row =  await db.collection('users').findOne({email: email}, {projection: {_id: 1}})
+        return row?._id
     }
 }
 

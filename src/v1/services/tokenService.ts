@@ -1,4 +1,5 @@
 import * as jwt from 'jsonwebtoken'
+import { ObjectId } from 'mongodb'
 
 export class TokenService {
     private static _instance: TokenService
@@ -15,8 +16,9 @@ export class TokenService {
         return this._instance
     }
 
-    async generateToken(email: string, role: string): Promise<string> {
+    async generateToken(id: ObjectId, email: string, role: string): Promise<string> {
         const payload: TokenPackage = {
+            id: id,
             email: email,
             role: role
         }
@@ -39,6 +41,7 @@ export class TokenService {
 }
 
 export interface TokenPackage {
+    id: ObjectId
     email: string
     role: string
 }
