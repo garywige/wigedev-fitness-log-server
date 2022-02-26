@@ -75,7 +75,7 @@ export class ExerciseService {
         try {
             // business logic
             const db = Database.instance.db
-            document = await db.collection('exercises').insertOne({ user_id: new ObjectID(tokenPackage.id), name: body?.name})
+            document = await db.collection('exercises').insertOne({ user_id: new ObjectId(tokenPackage.id), name: body?.name})
         } catch (e){
             res.status(500).send(InternalServerError)
             return
@@ -94,22 +94,24 @@ export class ExerciseService {
         // verify auth
 
         // validate input
-        if (!validateInt(req.params?.id)) {
+        if (!req.params?.id) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            id: '',
+            name: ''
+        }
         try {
-            // business logic
+            // get the exercise
+            const db = Database.instance.db
+            const row = await db.collection('exercises').findOne({ _id: new ObjectId(req.params?.id)}, { projection: {_id: 1, name: 1}})
+            output.id = row?._id.toHexString()
+            output.name = row?.name
         } catch {
             res.status(500).send(InternalServerError)
             return
-        }
-
-        // format output
-        const output = {
-            id: 1337,
-            name: 'Bench Press',
         }
 
         res.status(200).send(output)
