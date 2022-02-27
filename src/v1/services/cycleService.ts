@@ -125,6 +125,10 @@ export class CycleService {
 
             // verify cycle is for this user id
             const cycleRow = await db.collection('cycles').findOne({ _id: new ObjectId(req.params?.id)}, { projection: { user_id: 1, name: 1}})
+            if(cycleRow.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
 
             // get date of last workout
             output.modified = await this.getLastWorkoutDate(cycleRow?._id?.toHexString())
