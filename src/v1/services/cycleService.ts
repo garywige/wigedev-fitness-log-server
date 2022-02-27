@@ -45,27 +45,19 @@ export class CycleService {
 
             // for each cycle
             await cycles.forEach(cycle => {
+
                 // get workout count
-                const cycleId = new ObjectId(cycle?._id)
-                db.collection('workouts').countDocuments({ cycle_id: cycleId}).then(count => {
+                this.getWorkoutCount(cycle._id.toHexString()).then(async count => {
 
                     // get date of last workout
-                    let lastWorkout = new Date('1970-01-01')
-                    const workouts = db.collection('workouts').find({cycle_id: cycleId}, { projection: { date: 1 }})
-                    workouts.forEach( workout => {
-                        const workoutDate = new Date(workout.date)
-                        if(workoutDate > lastWorkout){
-                            lastWorkout = workoutDate
-                        }
-                    }).then(() => {
+                    const lastWorkout = await this.getLastWorkoutDate(cycle._id.toHexString())
 
-                        // add to output array
-                        output.cycles.push({id: cycleId, name: cycle?.name, modified: lastWorkout, workoutCount: count})
-                    })
+                    // add to output array
+                    output.cycles.push({id: cycle._id.toHexString(), name: cycle?.name, modified: lastWorkout, workoutCount: count})
                 })
-            }).then(() => {
-                setTimeout(() => res.status(200).send(output), 1000)
             })
+
+            setTimeout(() => res.status(200).send(output), 100)
 
         } catch {
             res.status(500).send(InternalServerError)
