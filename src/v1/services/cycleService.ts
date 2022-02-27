@@ -110,25 +110,41 @@ export class CycleService {
 
     async getCycleFromId(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateInt(req.params?.id)) {
+        if (!req.params?.id) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            id: req.params?.id,
+            name: '',
+            modified: '',
+            workoutCount: 0,
+        }
         try {
-            // business logic
+            const db = Database.instance.db
+
+            // verify cycle is for this user id
+            const cycleRow = await db.collection('cycles').findOne({ _id: new ObjectId(req.params?.id)}, { projection: { user_id: 1, name: 1}})
+
+            // get date of last workout
+            output.modified = await this.getLastWorkoutDate(cycleRow?._id?.toHexString())
+
+            // get workout count
+            output.workoutCount = await this.getWorkoutCount(cycleRow?._id?.toHexString())
+
+            // set output
+            output.name = cycleRow.name
+        
         } catch {
             res.status(500).send(InternalServerError)
-        }
-
-        // format output
-        const output = {
-            id: 1337,
-            name: 'Starting Strength',
-            modified: '20220223',
-            workoutCount: 15,
         }
 
         res.status(200).send(output)
@@ -181,6 +197,14 @@ export class CycleService {
         // format output
         const output = new ServerMessage('1 row(s) deleted successfully')
         res.status(200).send(output)
+    }
+
+    private async getLastWorkoutDate(cycle_id: string) : Promise<string> {
+        return 'Hello, World!'
+    }
+
+    private async getWorkoutCount(cycle_id: string) : Promise<number> {
+        return 0
     }
 }
 
