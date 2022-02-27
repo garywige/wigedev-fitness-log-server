@@ -1,6 +1,5 @@
-import { ObjectID } from 'bson'
 import { Request, Response } from 'express'
-import { FindCursor, InsertOneResult, ObjectId } from 'mongodb'
+import { InsertOneResult, ObjectId } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
@@ -9,7 +8,6 @@ import {
     UnauthorizedError,
 } from './responses'
 import { TokenPackage, TokenService } from './tokenService'
-import { validateInt } from './validation'
 
 export class ExerciseService {
     private static _instance: ExerciseService
