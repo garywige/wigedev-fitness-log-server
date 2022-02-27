@@ -46,7 +46,6 @@ export class CycleService {
             // for each cycle
             await cycles.forEach(cycle => {
                 // get workout count
-                console.log(`getting workout count`)
                 const cycleId = new ObjectId(cycle?._id)
                 db.collection('workouts').countDocuments({ cycle_id: cycleId}).then(count => {
 
