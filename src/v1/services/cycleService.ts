@@ -8,7 +8,6 @@ import {
     UnauthorizedError,
 } from './responses'
 import { TokenPackage, TokenService } from './tokenService'
-import { validateInt } from './validation'
 
 export class CycleService {
     private static _instance: CycleService
@@ -141,6 +140,7 @@ export class CycleService {
         
         } catch {
             res.status(500).send(InternalServerError)
+            return
         }
 
         res.status(200).send(output)
@@ -202,15 +202,34 @@ export class CycleService {
 
     async deleteCycle(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateInt(req.params?.id)) {
+        if (!req.params?.id) {
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // business logic
+            // verify that this is for this user
+            const db = Database.instance.db
+            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(req.params?.id)})
+            if(cycle.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // delete the cycle
+            const result = await db.collection('cycles').deleteOne({ _id: new ObjectId(req.params.id)})
+
+            // check for results
+            if(result?.deletedCount < 1){
+                throw Error('failed to delete cycle')
+            }
         } catch {
             res.status(500).send(InternalServerError)
             return
