@@ -200,7 +200,22 @@ export class CycleService {
     }
 
     private async getLastWorkoutDate(cycle_id: string) : Promise<string> {
-        return 'Hello, World!'
+        // get workouts in this cycle
+        const db = Database.instance.db
+        const workouts = await db.collection('workouts').find({ cycle_id: new ObjectId(cycle_id)})
+
+        // iterate through each one
+        let lastWorkout = new Date('1970-01-01')
+        await workouts.forEach( workout => {
+            // store the date if it's newer
+            const workoutDate = new Date(workout.date)
+            if(workoutDate > lastWorkout){
+                lastWorkout = workoutDate
+            }
+        })
+
+        // return the winner
+        return lastWorkout.toDateString()
     }
 
     private async getWorkoutCount(cycle_id: string) : Promise<number> {
