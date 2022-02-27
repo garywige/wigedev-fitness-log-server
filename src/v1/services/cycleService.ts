@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ObjectId, InsertOneResult } from 'mongodb'
+import { ObjectId, InsertOneResult, WithId, Document } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
@@ -148,16 +148,42 @@ export class CycleService {
 
     async putCycleFromId(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as CyclesReqBody
-        if (!validateInt(req.params?.id) || !body?.name) {
+        if (!req.params?.id || !body?.name) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        let cycle: WithId<Document>
+        let lastWorkout: string
+        let workoutCount: number
         try {
-            // do business logic
+            // validate that this cycle belongs to this user
+            const db = Database.instance.db
+            cycle = await db.collection('cycles').findOne({_id: new ObjectId(req.params?.id)})
+            if(cycle.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // update the cycle
+            const result = await db.collection('cycles').updateOne({ _id: new ObjectId(req.params?.id)}, { $set: { name: body.name }})
+            if(result.modifiedCount < 1){
+                throw Error('failed to update cycle')
+            }
+
+            // get last workout date
+            lastWorkout = await this.getLastWorkoutDate(cycle._id.toHexString())
+
+            // get workout count
+            workoutCount = await this.getWorkoutCount(cycle._id.toHexString())
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -165,10 +191,10 @@ export class CycleService {
 
         // format output
         const output = {
-            id: 1337,
-            name: 'Starting Strength',
-            modified: '20220223',
-            workoutCount: 15,
+            id: cycle._id.toHexString(),
+            name: body.name,
+            modified: lastWorkout,
+            workoutCount: workoutCount,
         }
 
         res.status(200).send(output)
