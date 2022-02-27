@@ -219,7 +219,9 @@ export class CycleService {
     }
 
     private async getWorkoutCount(cycle_id: string) : Promise<number> {
-        return 0
+        const db = Database.instance.db
+
+        return await db.collection('workouts').countDocuments({ cycle_id: new ObjectId(cycle_id)})
     }
 }
 
