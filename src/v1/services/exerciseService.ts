@@ -175,15 +175,31 @@ export class ExerciseService {
 
     async deleteExercise(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateInt(req.params?.id)) {
+        if (!req.params?.id) {
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // business logic
+            // validate that this belongs to the user
+            const row = await Database.instance.db.collection('exercises')
+                .findOne({ _id: new ObjectId(req.params?.id)}, { projection: { _id: 0, user_id: 1}})
+            if(row?.user_id?.toHexString() !== tokenPackage?.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // delete the exercise
+            const result = await Database.instance.db.collection('exercises').deleteOne({ _id: new ObjectId(req.params?.id)})
+            if(result?.deletedCount < 1)
+                throw Error('Failed to delete exercise')
         } catch {
             res.status(500).send(InternalServerError)
             return
