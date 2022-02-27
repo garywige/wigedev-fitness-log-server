@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ObjectId } from 'mongodb'
+import { ObjectId, InsertOneResult } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
@@ -76,6 +76,11 @@ export class CycleService {
 
     async postCycles(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as CyclesReqBody
@@ -84,8 +89,10 @@ export class CycleService {
             return
         }
 
+        let result: InsertOneResult
         try {
-            // business logic
+            // add cycle to collection
+            result = await Database.instance.db.collection('cycles').insertOne({ user_id: new ObjectId(tokenPackage?.id), name: body.name, modified: '1970-01-01', workoutCount: 0})
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -93,10 +100,10 @@ export class CycleService {
 
         // format output
         const output = {
-            id: 1337,
-            name: 'Starting Strength',
-            modified: '20220223',
-            workoutCount: 15,
+            id: result?.insertedId.toHexString(),
+            name: body?.name,
+            modified: '1970-01-01',
+            workoutCount: 0,
         }
 
         res.status(201).send(output)
