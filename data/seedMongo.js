@@ -98,16 +98,16 @@ db.createCollection('sets', {
                     bsonType: 'objectId'
                 },
                 weight: {
-                    bsonType: 'double'
+                    bsonType: 'number'
                 },
                 unit: {
                     bsonType: 'string'
                 },
                 repsPrescribed: {
-                    bsonType: 'double'
+                    bsonType: 'number'
                 },
                 repsPerformed: {
-                    bsonType: 'double'
+                    bsonType: 'number'
                 }
             }
         }
