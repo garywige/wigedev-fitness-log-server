@@ -207,7 +207,7 @@ export class CycleService {
         })
 
         // return the winner
-        return lastWorkout.toDateString()
+        return lastWorkout.toISOString().split('T')[0]
     }
 
     private async getWorkoutCount(cycle_id: string) : Promise<number> {
