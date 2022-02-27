@@ -34,18 +34,21 @@ export class ExerciseService {
             return
         }
 
-        let exercises: FindCursor
         const output = {
             exercises: []
         }
 
         try {
             // get exercises associated with this user
-            exercises = await this.findExercises(tokenPackage.id)
+            const db = Database.instance.db
+            const exercises = await db.collection('exercises').find({ user_id: new ObjectId(tokenPackage?.id)}, { projection: { _id: 1, name: 1}})
 
             // grab workout count for each workout
-            exercises.forEach(doc => {
-                output.exercises.push({id: doc._id, name: doc.name, workoutCount: this.getSetCount(doc._id)})
+            await exercises.forEach(doc => {
+                db.collection('sets').countDocuments({ exercise_id: new ObjectId(doc._id)}).then(count => {
+                    output.exercises.push({id: doc._id?.toHexString(), name: doc.name, 
+                        setCount: count})
+                })
             })
 
         } catch {
@@ -53,7 +56,8 @@ export class ExerciseService {
             return
         }
 
-        res.status(200).send(output)
+        // send output
+        setTimeout(() => res.status(200).send(output), 1000)
     }
 
     async postExercises(req: Request, res: Response) {
@@ -187,16 +191,6 @@ export class ExerciseService {
 
         // format output
         res.status(200).send(new ServerMessage('1 row(s) deleted successfully'))
-    }
-
-    private async findExercises(id: ObjectId){
-        const db = Database.instance.db
-        return await db.collection('exercises').find({ user_id: id}, { projection: { _id: 1, name: 1}})
-    }
-
-    private async getSetCount(exercise_id: ObjectId): Promise<number> {
-        const db = Database.instance.db
-        return await db.collection('sets').countDocuments({ exercise_id: exercise_id})
     }
 }
 
