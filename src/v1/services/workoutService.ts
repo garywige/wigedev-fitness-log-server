@@ -8,7 +8,7 @@ import {
     UnauthorizedError,
 } from './responses'
 import { TokenPackage, TokenService } from './tokenService'
-import { validateDate, validateInt } from './validation'
+import { validateDate } from './validation'
 export class WorkoutService {
     private static _instance: WorkoutService
 
@@ -54,12 +54,12 @@ export class WorkoutService {
             }
 
             // get workouts for the specified cycle
-            const workouts = await db.collection('workouts').find({ user_id: new ObjectId(tokenPackage.id), cycle_id: cycle._id})
+            const workouts = await db.collection('workouts').find({ cycle_id: cycle._id})
 
             await workouts.forEach(workout => {
                 // get set count
                 db.collection('sets').countDocuments({ workout_id: workout._id}).then(count => {
-                    output.workouts.push({date: workout.date, setCount: count})
+                    output.workouts.push({date: workout.date.toISOString().split('T')[0] ,setCount: count})
                 })
             })
 
@@ -73,37 +73,93 @@ export class WorkoutService {
 
     async postWorkouts(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as WorkoutPostReqBody
-        if (!body?.date || !body?.sets) {
+        if (!body?.date || !body?.cycleId || !body?.sets || !Array.isArray(body.sets)) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            date: body.date,
+            cycleId: body.cycleId,
+            sets: []
+        }
         try {
-            // business logic
-        } catch {
+            const db = Database.instance.db
+            
+            // validate that this cycle belongs to the user
+            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(body.cycleId)})
+            if(cycle?.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // validate that the exercises belong to this user
+            body.sets.forEach(async set => {
+                const exercise = await db.collection('exercises').findOne({ _id: new ObjectId(set.exerciseId)})
+                if(exercise?.user_id?.toHexString() !== tokenPackage.id){
+                    res.status(401).send(UnauthorizedError)
+                    return
+                }
+            })
+
+            // validate that there aren't currently any workouts on this date
+            const workoutCount = await db.collection('workouts').countDocuments({ date: new Date(body.date)})
+            if(workoutCount > 0){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // create the workout
+            console.log('creating workout...')
+            const workout = await db.collection('workouts').insertOne({ date: new Date(body.date), cycle_id: new ObjectId(body.cycleId)})
+
+            // create the sets with the new workoutId
+            const newSets = []
+            body.sets.forEach(set => {
+                newSets.push({
+                    workout_id: workout?.insertedId,
+                    exercise_id: new ObjectId(set.exerciseId),
+                    weight: set.weight,
+                    unit: set.unit,
+                    repsPrescribed: set.repsPrescribed,
+                    repsPerformed: set.repsPerformed
+                })
+            })
+
+            console.log('creating sets...')
+            console.log(JSON.stringify(newSets))
+            const sets = await db.collection('sets').insertMany(newSets)
+
+            // format output
+            for(let i = 0; i < sets?.insertedCount; i++){
+
+                const exercise = await db.collection('exercises').findOne({ _id: new ObjectId(body.sets[i].exerciseId)})
+
+                output.sets.push({
+                    id: sets.insertedIds[i],
+                    exercise: {
+                        id: body.sets[i].exerciseId,    
+                        name: exercise?.name
+                    },
+                    weight: body.sets[i].weight,
+                    unit: body.sets[i].unit,
+                    repsPrescribed: body.sets[i].repsPrescribed,
+                    repsPerformed: body.sets[i].repsPerformed
+                })
+            }
+
+        } catch (err){
+            console.log(err)
             res.status(500).send(InternalServerError)
             return
-        }
-
-        // format output
-        const output = {
-            date: '20220223',
-            sets: [
-                {
-                    id: 1337,
-                    exercise: {
-                        id: 1337,
-                        name: 'Bench Press',
-                    },
-                    weight: 135,
-                    unit: 'lbs',
-                    repsPrescribed: 10,
-                    repsPerformed: 0,
-                },
-            ],
         }
 
         res.status(201).send(output)
@@ -207,6 +263,7 @@ export class WorkoutService {
 
 interface WorkoutPostReqBody {
     date: string
+    cycleId: string
     sets: SetReqBody[]
 }
 
