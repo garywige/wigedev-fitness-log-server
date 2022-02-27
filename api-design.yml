@@ -98,6 +98,9 @@ components:
         date:
           type: string
           example: '2022-02-22'
+        cycleId:
+          type: string
+          example: '1337'
         sets:
           type: array
           items:
