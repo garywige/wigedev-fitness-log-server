@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ObjectId } from 'mongodb'
+import { ObjectId, OptionalId } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
@@ -122,29 +122,22 @@ export class WorkoutService {
             const workout = await db.collection('workouts').insertOne({ date: new Date(body.date), cycle_id: new ObjectId(body.cycleId)})
 
             // create the sets with the new workoutId
-            const newSets = []
-            body.sets.forEach(set => {
-                newSets.push({
-                    workout_id: workout?.insertedId,
-                    exercise_id: new ObjectId(set.exerciseId),
-                    weight: set.weight,
-                    unit: set.unit,
-                    repsPrescribed: set.repsPrescribed,
-                    repsPerformed: set.repsPerformed
-                })
-            })
+            const resultIds = []
+            for(const set of body.sets){
+                
+                const setId = await this.createSet(workout?.insertedId?.toHexString(), set.exerciseId, set.weight, set.unit, 
+                    set.repsPrescribed, set.repsPerformed)
 
-            console.log('creating sets...')
-            console.log(JSON.stringify(newSets))
-            const sets = await db.collection('sets').insertMany(newSets)
+                resultIds.push(setId)
+            }
 
             // format output
-            for(let i = 0; i < sets?.insertedCount; i++){
+            for(let i = 0; i < body.sets.length; i++){
 
                 const exercise = await db.collection('exercises').findOne({ _id: new ObjectId(body.sets[i].exerciseId)})
 
                 output.sets.push({
-                    id: sets.insertedIds[i],
+                    id: resultIds[i],
                     exercise: {
                         id: body.sets[i].exerciseId,    
                         name: exercise?.name
@@ -156,13 +149,13 @@ export class WorkoutService {
                 })
             }
 
+            setTimeout(() => res.status(201).send(output), 100)
+
         } catch (err){
             console.log(err)
             res.status(500).send(InternalServerError)
             return
         }
-
-        res.status(201).send(output)
     }
 
     async getWorkoutFromDate(req: Request, res: Response) {
@@ -259,6 +252,26 @@ export class WorkoutService {
         // status 200
         res.status(200).send(new ServerMessage('1 row(s) deleted successfully'))
     }
+
+    private async createSet(workoutId: string, exerciseId: string, weight: number, unit: Unit, repsPrescribed: number, repsPerformed?: number) : Promise<string> {
+        const db = Database.instance.db
+
+        const set = {
+            workout_id: new ObjectId(workoutId),
+            exercise_id: new ObjectId(exerciseId),
+            weight: weight,
+            unit: unit,
+            repsPrescribed: repsPrescribed
+        }
+
+        if(repsPerformed){
+            set['repsPerformed'] = repsPerformed
+        }
+
+        const result = await db.collection('sets').insertOne(set)
+
+        return result?.insertedId?.toHexString() ?? ''
+    }
 }
 
 interface WorkoutPostReqBody {
@@ -272,7 +285,7 @@ interface WorkoutPutReqBody {
 }
 
 interface SetReqBody {
-    exerciseId: number
+    exerciseId: string
     weight: number
     unit: Unit
     repsPrescribed: number
