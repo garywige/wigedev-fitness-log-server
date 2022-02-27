@@ -1,9 +1,13 @@
 import { Request, Response } from 'express'
+import { ObjectId } from 'mongodb'
+import { Database } from '../../database/database'
 import {
     BadRequestError,
     InternalServerError,
     ServerMessage,
+    UnauthorizedError,
 } from './responses'
+import { TokenPackage, TokenService } from './tokenService'
 import { validateDate, validateInt } from './validation'
 export class WorkoutService {
     private static _instance: WorkoutService
@@ -22,27 +26,49 @@ export class WorkoutService {
 
     async getWorkouts(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateInt(req.query?.cycle as string)) {
+        if (!req.query?.cycle) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            workouts: []
+        }
+
         try {
-            // business logic
+
+            const db = Database.instance.db
+
+            // validate user
+            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(req.query.cycle as string)})
+            if(cycle?.user_id.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // get workouts for the specified cycle
+            const workouts = await db.collection('workouts').find({ user_id: new ObjectId(tokenPackage.id), cycle_id: cycle._id})
+
+            await workouts.forEach(workout => {
+                // get set count
+                db.collection('sets').countDocuments({ workout_id: workout._id}).then(count => {
+                    output.workouts.push({date: workout.date, setCount: count})
+                })
+            })
+
+            setTimeout(() => res.status(200).send(output), 100)
+            
         } catch {
             res.status(500).send(InternalServerError)
             return
         }
-
-        // format output
-        const output = {
-            date: '20220223',
-            setCount: 16,
-        }
-
-        res.status(200).send(output)
     }
 
     async postWorkouts(req: Request, res: Response) {
