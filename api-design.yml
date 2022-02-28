@@ -781,6 +781,12 @@ paths:
           description: Date of the workout
           schema:
             type: string
+        - in: query
+          name: cycle
+          required: true
+          description: Cycle the workout belongs to.
+          schema:
+            type: string
       responses:
         '200': # Response
           $ref: '#/components/responses/DeletedSuccess'
