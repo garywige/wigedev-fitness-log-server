@@ -712,6 +712,12 @@ paths:
           description: Date of the workout
           schema:
             type: string
+        - in: query
+          name: cycle
+          required: true
+          description: Cycle the workout belongs to
+          schema:
+            type: string
       requestBody:
         required: true
         content:
