@@ -167,37 +167,53 @@ export class WorkoutService {
         }
 
         // validate input
-        if (!validateDate(req.params?.date)) {
+        if (!validateDate(req.params?.date) || !req.query?.cycle) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            date: req.params.date,
+            cycleId: req.query.cycle,
+            sets: []
+        }
+
         try {
-            // business logic
+            const db = Database.instance.db
+
+            // validate that cycle belongs to this user
+            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(req.query.cycle as string)})
+            if(cycle?.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // get the workout requested
+            const workout = await db.collection('workouts').findOne({ cycle_id: cycle._id, date: new Date(req.params.date)})
+
+            // get the sets of this workout
+            const sets = await db.collection('sets').find({ workout_id: new ObjectId(workout._id)})
+
+            // build the sets array of the output object
+            await sets.forEach(set => {
+                db.collection('exercises').findOne({ _id: new ObjectId(set.exercise_id)}).then( exercise => {
+                    output.sets.push({
+                        id: set._id.toHexString(),
+                        exercise: {
+                            id: exercise?._id?.toHexString(),
+                            name: exercise?.name
+                        },
+                        weight: set.weight,
+                        unit: set.unit,
+                        repsPrescribed: set.repsPrescribed,
+                        repsPerformed: set.repsPerformed
+                    })
+                })
+            }).then(() => setTimeout(() => res.status(200).send(output), 100))
         } catch {
             res.status(500).send(InternalServerError)
             return
         }
-
-        // format output
-        const output = {
-            date: '20220223',
-            sets: [
-                {
-                    id: 1337,
-                    exercise: {
-                        id: 1337,
-                        name: 'Bench Press',
-                    },
-                    weight: 135,
-                    unit: 'lbs',
-                    repsPrescribed: 10,
-                    repsPerformed: 0,
-                },
-            ],
-        }
-
-        res.status(200).send(output)
     }
 
     async putWorkout(req: Request, res: Response) {
