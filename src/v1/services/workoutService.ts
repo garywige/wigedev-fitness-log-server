@@ -160,6 +160,11 @@ export class WorkoutService {
 
     async getWorkoutFromDate(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         if (!validateDate(req.params?.date)) {
