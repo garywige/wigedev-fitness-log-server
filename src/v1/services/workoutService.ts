@@ -218,40 +218,63 @@ export class WorkoutService {
 
     async putWorkout(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as WorkoutPutReqBody
-        if (!validateDate(req.params?.date) || !body?.sets) {
+        if (!validateDate(req.params?.date) || !req.query?.cycle || !body?.sets) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            date: req.params.date,
+            cycleId: req.query.cycle,
+            sets: []
+        }
+
         try {
-            // business logic
+            // validate user
+            const db = Database.instance.db
+            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(req.query.cycle as string)})
+            if(cycle?.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // get the workout
+            const workout = await db.collection('workouts').findOne({ cycle_id: cycle._id, date: new Date(req.params.date)})
+
+            // delete current sets associated with this workout
+            await db.collection('sets').deleteMany({ workout_id: workout?._id })
+
+            // save these sets to this workout
+            body.sets.forEach(async set => {
+                const exercise = await db.collection('exercises').findOne({ _id: new ObjectId(set.exerciseId)})
+                const setId = await this.createSet(workout?._id?.toHexString(), set.exerciseId, set.weight, 
+                    set.unit, set.repsPrescribed, set.repsPerformed)
+                output.sets.push({
+                    id: setId,
+                    exercise: {
+                        id: set.exerciseId,
+                        name: exercise?.name
+                    },
+                    weight: set.weight,
+                    unit: set.unit,
+                    repsPrescribed: set.repsPrescribed,
+                    repsPerformed: set.repsPerformed
+                })
+            })
         } catch {
             res.status(500).send(InternalServerError)
             return
         }
 
-        // format output
-        const output = {
-            date: '20220223',
-            sets: [
-                {
-                    id: 1337,
-                    exercise: {
-                        id: 1337,
-                        name: 'Bench Press',
-                    },
-                    weight: 135,
-                    unit: 'lbs',
-                    repsPrescribed: 10,
-                    repsPerformed: 0,
-                },
-            ],
-        }
-
-        res.status(200).send(output)
+        setTimeout(() => res.status(200).send(output), 100)
     }
 
     async deleteWorkout(req: Request, res: Response) {
@@ -274,7 +297,7 @@ export class WorkoutService {
         res.status(200).send(new ServerMessage('1 row(s) deleted successfully'))
     }
 
-    private async createSet(workoutId: string, exerciseId: string, weight: number, unit: Unit, repsPrescribed: number, repsPerformed?: number) : Promise<string> {
+    private async createSet(workoutId: string, exerciseId: string, weight: number, unit: Unit, repsPrescribed: number, repsPerformed: number | null) : Promise<string> {
         const db = Database.instance.db
 
         const set = {
