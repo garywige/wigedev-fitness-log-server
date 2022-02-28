@@ -110,8 +110,8 @@ export class WorkoutService {
                 }
             })
 
-            // validate that there aren't currently any workouts on this date
-            const workoutCount = await db.collection('workouts').countDocuments({ date: new Date(body.date)})
+            // validate that there aren't currently any workouts on this date for this cycle
+            const workoutCount = await db.collection('workouts').countDocuments({ date: new Date(body.date), cycle_id: new ObjectId(body.cycleId)})
             if(workoutCount > 0){
                 res.status(401).send(UnauthorizedError)
                 return
