@@ -665,6 +665,12 @@ paths:
           description: Date of the workout
           schema:
             type: string
+        - in: query
+          name: cycle
+          required: true
+          description: Cycle that workout is a part of
+          schema:
+            type: string
       responses:
         '200': # Response
           description: OK
