@@ -1,16 +1,16 @@
 import { UserService } from './userService'
 import { Request, Response } from 'express'
+import { ObjectId } from 'mongodb'
 
 describe('UserService', () => {
     let testSubject: UserService
     let req: Request
     let res: Response
 
-    beforeAll(() => {
-        testSubject = UserService.instance
-    })
-
     beforeEach(() => {
+        // instantiate service
+        testSubject = UserService.instance
+
         // create mock response
         res = jasmine.createSpyObj('Response', ['send', 'status'])
         res.status = jasmine.createSpy().and.returnValue(res)
@@ -20,15 +20,25 @@ describe('UserService', () => {
         expect(testSubject).toBeTruthy()
     })
 
-    describe('postSignIn()', () => {
+    describe('postSignin()', () => {
         it('should call status with 200 when request body is valid', () => {
+            // Arrange
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { body: { email: 'test@test.com', password: 'password' } }
             )
-            testSubject.postSignin(req, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+
+            spyOn<any>(testSubject, 'compareCredentials').and.returnValue(new Promise(() => true))
+            spyOn<any>(testSubject, 'getId').and.returnValue(new Promise(() => new ObjectId(1)))
+            spyOn<any>(testSubject, 'getRole').and.returnValue(new Promise(() => 'free'))
+
+            // Act
+            testSubject.postSignin(req, res).then(() => {
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(200)
+            })
         })
 
         it('should call status with 400 when request body is invalid', () => {
@@ -44,6 +54,8 @@ describe('UserService', () => {
 
     describe('postSignup()', () => {
         it('should call status with 201 when request body is valid', () => {
+            
+            // Arrange
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -55,8 +67,15 @@ describe('UserService', () => {
                     },
                 }
             )
-            testSubject.postSignup(req, res)
-            expect(res.status).toHaveBeenCalledWith(201)
+
+            spyOn<any>(testSubject, 'createUser')
+
+            // Act
+            testSubject.postSignup(req, res).then(() => {
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(201)
+            })
         })
 
         it('should call status with 400 when request body is invalid', () => {
