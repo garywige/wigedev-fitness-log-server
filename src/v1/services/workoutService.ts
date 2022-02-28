@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { ObjectId, OptionalId } from 'mongodb'
+import { ObjectId } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
