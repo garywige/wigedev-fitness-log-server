@@ -279,15 +279,33 @@ export class WorkoutService {
 
     async deleteWorkout(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateDate(req.params?.date)) {
+        if (!validateDate(req.params?.date) || !req.query?.cycle) {
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // business logic
+            // validate user
+            const db = Database.instance.db
+            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(req.query.cycle as string)})
+            if(cycle?.user_id?.toHexString() !== tokenPackage.id){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // delete all sets in this workout
+            const workout = await db.collection('workouts').findOne({ cycle_id: cycle?._id, date: new Date(req.params.date)})
+            await db.collection('sets').deleteMany({ workout_id: workout?._id })
+
+            // delete the workout
+            await db.collection('workouts').deleteOne({ _id: workout?._id})
         } catch {
             res.status(500).send(InternalServerError)
             return
