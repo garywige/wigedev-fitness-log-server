@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { ObjectId } from 'mongodb'
 import { ExerciseService } from './exerciseService'
 
 describe('ExerciseService', () => {
@@ -6,11 +7,10 @@ describe('ExerciseService', () => {
     let req: Request
     let res: Response
 
-    beforeAll(() => {
-        testSubject = ExerciseService.instance
-    })
-
     beforeEach(() => {
+        // create instance
+        testSubject = ExerciseService.instance
+
         // create mock response
         res = jasmine.createSpyObj('Response', ['send', 'status'])
         res.status = jasmine.createSpy().and.returnValue(res)
@@ -22,8 +22,20 @@ describe('ExerciseService', () => {
 
     describe('getExercises()', () => {
         it('should set status 200', () => {
-            testSubject.getExercises(req, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+
+            // Arrange
+            spyOn<any>(testSubject['_tokenService'], 'extractTokenPackage').and.returnValue(new Promise(() => { return {
+                id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+                email: 'test@test.com',
+                role: 'free'
+            }}))
+
+            // Act
+            testSubject.getExercises(req, res).then(() => {
+
+                // Assert
+                expect(res.status).toHaveBeenCalledWith(200)
+            })
         })
     })
 
