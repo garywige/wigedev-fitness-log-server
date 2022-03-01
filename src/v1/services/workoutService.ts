@@ -11,9 +11,11 @@ import { TokenPackage, TokenService } from './tokenService'
 import { validateDate } from './validation'
 export class WorkoutService {
     private static _instance: WorkoutService
+    private _tokenService: TokenService
 
     private constructor() {
         console.log('WorkoutService instantiated...')
+        this._tokenService = TokenService.instance
     }
 
     static get instance(): WorkoutService {
@@ -27,7 +29,7 @@ export class WorkoutService {
     async getWorkouts(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -74,7 +76,7 @@ export class WorkoutService {
     async postWorkouts(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -161,7 +163,7 @@ export class WorkoutService {
     async getWorkoutFromDate(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -219,7 +221,7 @@ export class WorkoutService {
     async putWorkout(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -280,7 +282,7 @@ export class WorkoutService {
     async deleteWorkout(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
