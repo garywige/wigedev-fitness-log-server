@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { WorkoutService } from './workoutService'
+import { ObjectId } from 'mongodb'
 
 describe('WorkoutService', () => {
     let testSubject: WorkoutService
@@ -11,6 +12,13 @@ describe('WorkoutService', () => {
         testSubject = WorkoutService.instance
         res = jasmine.createSpyObj('Response', ['send', 'status'])
         res.status = jasmine.createSpy().and.returnValue(res)
+
+        // spy on tokenService
+        spyOn<any>(testSubject['_tokenService'], 'extractTokenPackage').and.returnValue(new Promise(() => { return {
+            id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+            email: 'test@test.com',
+            role: 'free'
+        }}))
     })
 
     it('should be truthy', () => {
@@ -28,13 +36,15 @@ describe('WorkoutService', () => {
         })
 
         it('should set status 200 with valid query', () => {
-            testSubject.getWorkouts(valid, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+            testSubject.getWorkouts(valid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(200)
+            )
         })
 
         it('should set status 400 with invalid query', () => {
-            testSubject.getWorkouts(invalid, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.getWorkouts(invalid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(400)
+            )
         })
     })
 
@@ -45,8 +55,9 @@ describe('WorkoutService', () => {
                 {},
                 { body: { date: '11111111', sets: ['test', 'test'] } }
             )
-            testSubject.postWorkouts(valid, res)
-            expect(res.status).toHaveBeenCalledWith(201)
+            testSubject.postWorkouts(valid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(201)
+            )
         })
 
         it('should set status 400 with invalid input', () => {
@@ -55,8 +66,9 @@ describe('WorkoutService', () => {
                 {},
                 { body: { date: '11111111', invalid: 'test' } }
             )
-            testSubject.postWorkouts(invalid, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.postWorkouts(invalid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(400)
+            )
         })
     })
 
@@ -67,8 +79,9 @@ describe('WorkoutService', () => {
                 {},
                 { params: { date: '11111111' } }
             )
-            testSubject.getWorkoutFromDate(valid, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+            testSubject.getWorkoutFromDate(valid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(200)
+            )
         })
 
         it('should set status 400 with invalid param', () => {
@@ -77,8 +90,9 @@ describe('WorkoutService', () => {
                 {},
                 { params: { invalid: 'test' } }
             )
-            testSubject.getWorkoutFromDate(invalid, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.getWorkoutFromDate(invalid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(400)
+            )
         })
     })
 
@@ -89,8 +103,9 @@ describe('WorkoutService', () => {
                 {},
                 { body: { sets: ['test'] }, params: { date: '11111111' } }
             )
-            testSubject.putWorkout(valid, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+            testSubject.putWorkout(valid, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(200)
+            })
         })
 
         it('should set status 400 with invalid param', () => {
@@ -99,8 +114,9 @@ describe('WorkoutService', () => {
                 {},
                 { body: { sets: ['test'] }, params: { invalid: 'test' } }
             )
-            testSubject.putWorkout(invalid, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.putWorkout(invalid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(400)
+            )
         })
 
         it('should set status 400 with invalid req body', () => {
@@ -109,8 +125,9 @@ describe('WorkoutService', () => {
                 {},
                 { body: { invalid: 'test' }, params: { date: '11111111' } }
             )
-            testSubject.putWorkout(invalid, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.putWorkout(invalid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(400)
+            )
         })
     })
 
@@ -121,8 +138,9 @@ describe('WorkoutService', () => {
                 {},
                 { params: { date: '11111111' } }
             )
-            testSubject.deleteWorkout(valid, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+            testSubject.deleteWorkout(valid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(200)
+            )
         })
 
         it('should set status 400 with invalid input', () => {
@@ -131,8 +149,9 @@ describe('WorkoutService', () => {
                 {},
                 { params: { invalid: 'test' } }
             )
-            testSubject.deleteWorkout(invalid, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.deleteWorkout(invalid, res).then(() => 
+                expect(res.status).toHaveBeenCalledWith(400)
+            )
         })
     })
 })
