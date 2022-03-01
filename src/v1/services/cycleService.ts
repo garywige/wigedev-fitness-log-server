@@ -14,7 +14,6 @@ export class CycleService {
     private _tokenService: TokenService
 
     private constructor() {
-        console.log('CycleService instantiated...')
         this._tokenService = TokenService.instance
     }
 
