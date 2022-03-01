@@ -1,7 +1,8 @@
-import * as http from 'http'
-import app from './app'
 import * as config from './config'
 import * as dotenv from 'dotenv'
+import * as http from 'http'
+
+import app from './app'
 
 export let Instance: http.Server
 async function start() {

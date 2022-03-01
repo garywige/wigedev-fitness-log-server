@@ -3,6 +3,7 @@ import * as cors from 'cors'
 import * as express from 'express'
 import * as logger from 'morgan'
 import api from './api'
+import { Database } from './database/database'
 
 const app = express()
 
@@ -17,5 +18,7 @@ app.use(
 )
 
 app.use(api)
+
+Database.instance.connect()
 
 export default app
