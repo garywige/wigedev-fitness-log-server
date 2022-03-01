@@ -1,16 +1,22 @@
-import { Response, Request } from 'express'
-import { Database } from '../../database/database'
-import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import * as bcrypt from 'bcrypt'
-import { TokenService } from './tokenService'
+
+import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import { Db, ObjectId } from 'mongodb'
+import { Request, Response } from 'express'
+
+import { Database } from '../../database/database'
+import { TokenService } from './tokenService'
 
 export class UserService {
     private static _instance: UserService
     private _db: Db
 
     private constructor(){
-        this._db = Database.instance.db
+        try{
+            this._db = Database.instance?.db
+        } catch{
+            console.log('UserService: Failed to connect to database. This is only acceptable for testing.')
+        }
     }
 
     static get instance(): UserService {
