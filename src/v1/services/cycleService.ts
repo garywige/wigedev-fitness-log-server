@@ -11,9 +11,11 @@ import { TokenPackage, TokenService } from './tokenService'
 
 export class CycleService {
     private static _instance: CycleService
+    private _tokenService: TokenService
 
     private constructor() {
         console.log('CycleService instantiated...')
+        this._tokenService = TokenService.instance
     }
 
     static get instance(): CycleService {
@@ -27,7 +29,7 @@ export class CycleService {
     async getCycles(req: Request, res: Response) {
         // verify authorization
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -67,7 +69,7 @@ export class CycleService {
     async postCycles(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -102,7 +104,7 @@ export class CycleService {
     async getCycleFromId(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -149,7 +151,7 @@ export class CycleService {
     async putCycleFromId(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -203,7 +205,7 @@ export class CycleService {
     async deleteCycle(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
