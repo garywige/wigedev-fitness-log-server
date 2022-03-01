@@ -1,12 +1,9 @@
 import * as jwt from 'jsonwebtoken'
+
 import { ObjectId } from 'mongodb'
 
 export class TokenService {
     private static _instance: TokenService
-
-    private constructor(){
-        console.log('TokenService instantiated...')
-    }
 
     static get instance(){
         if(!this._instance){

@@ -1,20 +1,20 @@
-import { Request, Response } from 'express'
-import { ObjectId } from 'mongodb'
-import { Database } from '../../database/database'
 import {
     BadRequestError,
     InternalServerError,
     ServerMessage,
     UnauthorizedError,
 } from './responses'
+import { Request, Response } from 'express'
 import { TokenPackage, TokenService } from './tokenService'
+
+import { Database } from '../../database/database'
+import { ObjectId } from 'mongodb'
 import { validateDate } from './validation'
 export class WorkoutService {
     private static _instance: WorkoutService
     private _tokenService: TokenService
 
     private constructor() {
-        console.log('WorkoutService instantiated...')
         this._tokenService = TokenService.instance
     }
 
