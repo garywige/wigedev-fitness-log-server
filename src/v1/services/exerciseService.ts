@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { InsertOneResult, ObjectId } from 'mongodb'
+import { Db, InsertOneResult, ObjectId } from 'mongodb'
 import { Database } from '../../database/database'
 import {
     BadRequestError,
@@ -11,9 +11,17 @@ import { TokenPackage, TokenService } from './tokenService'
 
 export class ExerciseService {
     private static _instance: ExerciseService
+    private _tokenService: TokenService
+    private _db: Db
 
     private constructor() {
-        console.log('ExerciseService instantiated...')
+        try {
+            this._tokenService = TokenService.instance
+            this._db = Database.instance.db
+        }
+        catch(e){
+            console.error(e)
+        }
     }
 
     static get instance(): ExerciseService {
@@ -27,7 +35,7 @@ export class ExerciseService {
     async getExercises(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -38,12 +46,11 @@ export class ExerciseService {
 
         try {
             // get exercises associated with this user
-            const db = Database.instance.db
-            const exercises = await db.collection('exercises').find({ user_id: new ObjectId(tokenPackage?.id)}, { projection: { _id: 1, name: 1}})
+            const exercises = await this._db.collection('exercises').find({ user_id: new ObjectId(tokenPackage?.id)}, { projection: { _id: 1, name: 1}})
 
             // grab workout count for each workout
             await exercises.forEach(doc => {
-                db.collection('sets').countDocuments({ exercise_id: new ObjectId(doc._id)}).then(count => {
+                this._db.collection('sets').countDocuments({ exercise_id: new ObjectId(doc._id)}).then(count => {
                     output.exercises.push({id: doc._id?.toHexString(), name: doc.name, 
                         setCount: count})
                 })
@@ -61,7 +68,7 @@ export class ExerciseService {
     async postExercises(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -95,7 +102,7 @@ export class ExerciseService {
     async getExerciseFromId(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -134,7 +141,7 @@ export class ExerciseService {
     async putExercise(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -174,7 +181,7 @@ export class ExerciseService {
     async deleteExercise(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await TokenService.instance.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
             res.status(401).send(UnauthorizedError)
             return
         }
