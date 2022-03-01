@@ -3,13 +3,14 @@ import { Database } from '../../database/database'
 import { BadRequestError, InternalServerError, UnauthorizedError } from './responses'
 import * as bcrypt from 'bcrypt'
 import { TokenService } from './tokenService'
-import { ObjectId } from 'mongodb'
+import { Db, ObjectId } from 'mongodb'
 
 export class UserService {
     private static _instance: UserService
+    private _db: Db
 
-    private constructor() {
-        console.log('UserService instantiated...')
+    private constructor(){
+        this._db = Database.instance.db
     }
 
     static get instance(): UserService {
@@ -87,13 +88,12 @@ export class UserService {
     private async createUser(body: SignupReqBody){
         const salt = await bcrypt.genSalt()
             const hash = await bcrypt.hash(body?.password, salt)
-            const db = Database.instance.db
 
             // validate that the account doesn't already exist
-            if(await db.collection('users').findOne({ email: body?.email}))
+            if(await this._db.collection('users').findOne({ email: body?.email}))
                 throw Error('account already exists with this email address.')
 
-            db.collection('users').insertOne({
+            this._db.collection('users').insertOne({
                 email: body?.email.toLowerCase(),
                 hash: hash,
                 salt: salt,
@@ -104,8 +104,7 @@ export class UserService {
     }
 
     private async compareCredentials(body: SigninReqBody): Promise<boolean> {
-        const db = Database.instance.db
-        const account = await db.collection('users').findOne({ email: body?.email.toLowerCase()}, { projection: { _id: 0, hash: 1, salt: 1}})
+        const account = await this._db.collection('users').findOne({ email: body?.email.toLowerCase()}, { projection: { _id: 0, hash: 1, salt: 1}})
         
         // account doesn't exist?
         if(!account) return false
@@ -115,14 +114,12 @@ export class UserService {
     }
 
     private async getRole(email: string) : Promise<AccountType> {
-        const db = Database.instance.db
-        const row = await db.collection('users').findOne({ email: email}, { projection: { _id: 0, role: 1}})
+        const row = await this._db.collection('users').findOne({ email: email}, { projection: { _id: 0, role: 1}})
         return row?.role as AccountType
     }
 
     private async getId(email: string) : Promise<ObjectId> {
-        const db = Database.instance.db
-        const row =  await db.collection('users').findOne({email: email}, {projection: {_id: 1}})
+        const row =  await this._db.collection('users').findOne({email: email}, {projection: {_id: 1}})
         return row?._id
     }
 }
