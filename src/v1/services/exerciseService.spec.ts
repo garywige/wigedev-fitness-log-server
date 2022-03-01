@@ -70,70 +70,94 @@ describe('ExerciseService', () => {
     })
 
     describe('getExerciseFromId()', () => {
+
         it('should set status 200 with valid input', () => {
+
             req = jasmine.createSpyObj('Request', {}, { params: { id: 1 } })
-            testSubject.getExerciseFromId(req, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+
+            testSubject.getExerciseFromId(req, res).then( () => {
+                expect(res.status).toHaveBeenCalledWith(200)
+            })
         })
 
         it('should set status 400 with invalid input', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { params: { invalid: 'test' } }
             )
-            testSubject.getExerciseFromId(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+
+            testSubject.getExerciseFromId(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
     })
 
     describe('putExercise()', () => {
+
         it('should set status 200 with valid input', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { body: { name: 'test' }, params: { id: 1 } }
             )
-            testSubject.putExercise(req, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+
+            testSubject.putExercise(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(200)
+            })
         })
 
         it('should set status 400 with invalid req body', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { body: { invalid: 'test' }, params: { id: 1 } }
             )
-            testSubject.putExercise(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+
+            testSubject.putExercise(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
 
         it('should set status 400 with invalid param', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { body: { name: 'test' }, params: { invalid: 'test' } }
             )
-            testSubject.putExercise(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+
+            testSubject.putExercise(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
     })
 
     describe('deleteExercise()', () => {
+
         it('should set status 200 with valid input', () => {
+
             req = jasmine.createSpyObj('Request', {}, { params: { id: 1 } })
-            testSubject.deleteExercise(req, res)
-            expect(res.status).toHaveBeenCalledWith(200)
+
+            testSubject.deleteExercise(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(200)
+            })
         })
 
         it('should set status 400 with invalid input', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { params: { invalid: 'test' } }
             )
-            testSubject.deleteExercise(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+
+            testSubject.deleteExercise(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
     })
 })
