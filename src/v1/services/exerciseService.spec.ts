@@ -14,6 +14,13 @@ describe('ExerciseService', () => {
         // create mock response
         res = jasmine.createSpyObj('Response', ['send', 'status'])
         res.status = jasmine.createSpy().and.returnValue(res)
+
+        // spy on tokenService
+        spyOn<any>(testSubject['_tokenService'], 'extractTokenPackage').and.returnValue(new Promise(() => { return {
+            id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+            email: 'test@test.com',
+            role: 'free'
+        }}))
     })
 
     it('should create', () => {
@@ -21,14 +28,8 @@ describe('ExerciseService', () => {
     })
 
     describe('getExercises()', () => {
-        it('should set status 200', () => {
 
-            // Arrange
-            spyOn<any>(testSubject['_tokenService'], 'extractTokenPackage').and.returnValue(new Promise(() => { return {
-                id: new ObjectId('621bd519c0a89c2c785bcbaa'),
-                email: 'test@test.com',
-                role: 'free'
-            }}))
+        it('should set status 200', () => {
 
             // Act
             testSubject.getExercises(req, res).then(() => {
@@ -40,24 +41,31 @@ describe('ExerciseService', () => {
     })
 
     describe('postExercises()', () => {
+
         it('should set status 201 with valid input', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { body: { name: 'test' } }
             )
-            testSubject.postExercises(req, res)
-            expect(res.status).toHaveBeenCalledWith(201)
+
+            testSubject.postExercises(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(201)
+            })
         })
 
         it('should set status 400 with invalid input', () => {
+
             req = jasmine.createSpyObj(
                 'Request',
                 {},
                 { body: { invalid: 'test' } }
             )
-            testSubject.postExercises(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+
+            testSubject.postExercises(req, res).then(() => {
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
     })
 
