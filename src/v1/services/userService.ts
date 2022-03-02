@@ -6,6 +6,7 @@ import { Request, Response } from 'express'
 
 import { Database } from '../../database/database'
 import { TokenService } from './tokenService'
+import { resolve } from 'path/posix'
 
 export class UserService {
     private static _instance: UserService
@@ -74,7 +75,9 @@ export class UserService {
 
         try {
             // create new user account
-            await this.createUser(body)
+            if(await this.createUser(body)){
+                res.status(500).send(InternalServerError)
+            }
 
             // initiate email verification depending on accountType
 
@@ -91,22 +94,26 @@ export class UserService {
         res.status(201).send(output)
     }
 
-    private async createUser(body: SignupReqBody){
-        const salt = await bcrypt.genSalt()
-            const hash = await bcrypt.hash(body?.password, salt)
+    private async createUser(body: SignupReqBody): Promise<boolean>{
 
-            // validate that the account doesn't already exist
-            if(await this._db.collection('users').findOne({ email: body?.email}))
-                throw Error('account already exists with this email address.')
+        return new Promise((resolve, reject) => bcrypt.genSalt().then(salt => {
+            bcrypt.hash(body?.password, salt).then(hash => {
+                this._db.collection('users').countDocuments({ email: body?.email}).then(count => {
+                    if(count > 0){
+                        return resolve(false)
+                    }
 
-            this._db.collection('users').insertOne({
-                email: body?.email.toLowerCase(),
-                hash: hash,
-                salt: salt,
-                role: 'free',
-                created: new Date(),
-                emailVerified: false
-            })
+                    this._db.collection('users').insertOne({
+                        email: body?.email.toLowerCase(),
+                        hash: hash,
+                        salt: salt,
+                        role: 'free',
+                        created: new Date(),
+                        emailVerified: false
+                    }).then(() => { resolve(true)})
+                })
+            }, reason => console.log(`hash rejected: ${reason}`))
+        }))     
     }
 
     private async compareCredentials(body: SigninReqBody): Promise<boolean> {
@@ -135,7 +142,7 @@ interface SigninReqBody {
     password: string
 }
 
-enum AccountType {
+export enum AccountType {
     Free = 'free',
     Pro = 'pro',
 }

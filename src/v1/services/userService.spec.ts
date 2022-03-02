@@ -1,6 +1,7 @@
-import { UserService } from './userService'
 import { Request, Response } from 'express'
-import { ObjectId } from 'mongodb'
+
+import { Db, ObjectId } from 'mongodb'
+import { UserService, AccountType } from './userService'
 
 describe('UserService', () => {
     let testSubject: UserService
@@ -87,5 +88,44 @@ describe('UserService', () => {
             testSubject.postSignup(req, res)
             expect(res.status).toHaveBeenCalledWith(400)
         })
+    })
+
+    describe('createUser()', () => {
+        
+        it('should return false when providing an existing email address', done => {
+
+            // Arrange
+            testSubject['_db'] = <Db>{}
+            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
+                countDocuments(filter: any): Promise<number> {
+                    return Promise.resolve((filter?.email === 'test') ? 1 : 0)
+                },
+                insertOne(){
+                    return Promise
+                }
+            })
+
+            const body = {
+                email: 'test',
+                password: 'test',
+                accountType: AccountType.Free
+            }
+
+
+            // Act
+            testSubject['createUser'](body).then(result => {
+
+                // Assert
+                expect(result).toEqual(false)
+                done()
+            })
+
+        })
+
+        it('should call insertOne when provided email address doesn\'t exist in the users collection', () => {
+            // Arrange
+            // Act
+            // Assert
+        })  
     })
 })
