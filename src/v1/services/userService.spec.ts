@@ -91,20 +91,22 @@ describe('UserService', () => {
     })
 
     describe('createUser()', () => {
-        
-        it('should return false when providing an existing email address', done => {
 
-            // Arrange
+        beforeEach(() => {
             testSubject['_db'] = <Db>{}
             testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
                 countDocuments(filter: any): Promise<number> {
                     return Promise.resolve((filter?.email === 'test') ? 1 : 0)
                 },
                 insertOne(){
-                    return Promise
+                    return new Promise( resolve => resolve(true))
                 }
             })
+        })
+        
+        it('should return false when providing an existing email address', done => {
 
+            // Arrange
             const body = {
                 email: 'test',
                 password: 'test',
@@ -122,10 +124,22 @@ describe('UserService', () => {
 
         })
 
-        it('should call insertOne when provided email address doesn\'t exist in the users collection', () => {
+        it('should return true when provided email address doesn\'t exist in the users collection', done => {
             // Arrange
+            const body = {
+                email: 'not same test :P',
+                password: 'password',
+                accountType: AccountType.Free
+            }
+
+
             // Act
-            // Assert
+            testSubject['createUser'](body).then(result => {
+
+                // Assert
+                expect(result).toEqual(true)
+                done()
+            })
         })  
     })
 })
