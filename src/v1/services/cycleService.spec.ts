@@ -19,11 +19,18 @@ describe('CycleService', () => {
         res.status = jasmine.createSpy().and.returnValue(res)
 
         // spy on tokenService
-        spyOn<any>(testSubject['_tokenService'], 'extractTokenPackage').and.returnValue(new Promise(() => { return {
-            id: new ObjectId('621bd519c0a89c2c785bcbaa'),
-            email: 'test@test.com',
-            role: 'free'
-        }}))
+        spyOn<any>(
+            testSubject['_tokenService'],
+            'extractTokenPackage'
+        ).and.returnValue(
+            new Promise(() => {
+                return {
+                    id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+                    email: 'test@test.com',
+                    role: 'free',
+                }
+            })
+        )
     })
 
     it('should be truthy', () => {
@@ -31,9 +38,7 @@ describe('CycleService', () => {
     })
 
     describe('getCycles()', () => {
-
         it('should set response status to 200 when called', () => {
-
             req = jasmine.createSpyObj('Request', [''])
 
             testSubject.getCycles(req, res).then(() => {
@@ -43,9 +48,7 @@ describe('CycleService', () => {
     })
 
     describe('postCycles()', () => {
-
         it('should set response status to 201 when called with valid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -58,7 +61,6 @@ describe('CycleService', () => {
         })
 
         it('should set response status to 400 when called with invalid input', () => {
-
             req = jasmine.createSpyObj('Request', {}, { body: { bad: 'test' } })
 
             testSubject.postCycles(req, res).then(() => {
@@ -68,9 +70,7 @@ describe('CycleService', () => {
     })
 
     describe('getCycleFromId()', () => {
-
         it('should set response status to 200 when called with valid input', () => {
-
             req = jasmine.createSpyObj('Request', {}, { params: { id: 1 } })
 
             testSubject.getCycleFromId(req, res).then(() => {
@@ -79,7 +79,6 @@ describe('CycleService', () => {
         })
 
         it('should set response status to 400 when called with invalid input', () => {
-
             req = jasmine.createSpyObj('Request', {}, { params: { bad: 1 } })
 
             testSubject.getCycleFromId(req, res).then(() => {
@@ -89,9 +88,7 @@ describe('CycleService', () => {
     })
 
     describe('putCycleFromId()', () => {
-
         it('should set response status to 200 when called with valid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -107,7 +104,6 @@ describe('CycleService', () => {
         })
 
         it('should set response status to 400 when called with invalid request body', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -123,7 +119,6 @@ describe('CycleService', () => {
         })
 
         it('should set response status to 400 when called with invalid parameter', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -140,9 +135,7 @@ describe('CycleService', () => {
     })
 
     describe('deleteCycle()', () => {
-
         it('should set response status to 200 with valid parameter', () => {
-
             req = jasmine.createSpyObj('Request', {}, { params: { id: 1 } })
 
             testSubject.deleteCycle(req, res).then(() => {
@@ -151,7 +144,6 @@ describe('CycleService', () => {
         })
 
         it('should set response status to 400 with invalid parameter', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -165,56 +157,55 @@ describe('CycleService', () => {
     })
 
     describe('getLastWorkoutDate()', () => {
-        
         it('should return the latest date provided in the collection', () => {
             // Arrange
             const workouts = [
-                { date: new Date('1990-01-01')},
-                { date: new Date('1989-01-01')},
-                { date: new Date('2020-01-01')},
-                { date: new Date('1987-01-01')},
-                { date: new Date('1986-01-01')}
+                { date: new Date('1990-01-01') },
+                { date: new Date('1989-01-01') },
+                { date: new Date('2020-01-01') },
+                { date: new Date('1987-01-01') },
+                { date: new Date('1986-01-01') },
             ]
 
             spyOnProperty<any>(Database.instance, 'db', 'get').and.returnValue({
-                collection(){
+                collection() {
                     return {
-                        find(){
+                        find() {
                             return workouts
-                        }
+                        },
                     }
-                }
+                },
             })
 
             // Act
-            testSubject['getLastWorkoutDate']('621bd519c0a89c2c785bcbaa').then(result => {
-
-                // Assert
-                expect(result).toEqual('2020-01-01')
-            })
+            testSubject['getLastWorkoutDate']('621bd519c0a89c2c785bcbaa').then(
+                (result) => {
+                    // Assert
+                    expect(result).toEqual('2020-01-01')
+                }
+            )
         })
     })
 
     describe('getWorkoutCount()', () => {
-        
         it('should call countDocuments()', () => {
-
             // Arrange
             const spy = jasmine.createSpy('countDocuments')
             spyOnProperty<any>(Database.instance, 'db', 'get').and.returnValue({
-                collection(){
+                collection() {
                     return {
-                        countDocuments: spy
+                        countDocuments: spy,
                     }
-                }
+                },
             })
 
             // Act
-            testSubject['getWorkoutCount']('621bd519c0a89c2c785bcbaa').then(() => {
-
-                // Assert
-                expect(spy).toHaveBeenCalled()
-            })
+            testSubject['getWorkoutCount']('621bd519c0a89c2c785bcbaa').then(
+                () => {
+                    // Assert
+                    expect(spy).toHaveBeenCalled()
+                }
+            )
         })
     })
 })

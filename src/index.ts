@@ -6,7 +6,6 @@ import app from './app'
 
 export let Instance: http.Server
 async function start() {
-
     dotenv.config()
 
     console.log('Starting server: ')

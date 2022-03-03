@@ -16,11 +16,18 @@ describe('ExerciseService', () => {
         res.status = jasmine.createSpy().and.returnValue(res)
 
         // spy on tokenService
-        spyOn<any>(testSubject['_tokenService'], 'extractTokenPackage').and.returnValue(new Promise(() => { return {
-            id: new ObjectId('621bd519c0a89c2c785bcbaa'),
-            email: 'test@test.com',
-            role: 'free'
-        }}))
+        spyOn<any>(
+            testSubject['_tokenService'],
+            'extractTokenPackage'
+        ).and.returnValue(
+            new Promise(() => {
+                return {
+                    id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+                    email: 'test@test.com',
+                    role: 'free',
+                }
+            })
+        )
     })
 
     it('should create', () => {
@@ -28,12 +35,9 @@ describe('ExerciseService', () => {
     })
 
     describe('getExercises()', () => {
-
         it('should set status 200', () => {
-
             // Act
             testSubject.getExercises(req, res).then(() => {
-
                 // Assert
                 expect(res.status).toHaveBeenCalledWith(200)
             })
@@ -41,9 +45,7 @@ describe('ExerciseService', () => {
     })
 
     describe('postExercises()', () => {
-
         it('should set status 201 with valid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -56,7 +58,6 @@ describe('ExerciseService', () => {
         })
 
         it('should set status 400 with invalid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -70,18 +71,15 @@ describe('ExerciseService', () => {
     })
 
     describe('getExerciseFromId()', () => {
-
         it('should set status 200 with valid input', () => {
-
             req = jasmine.createSpyObj('Request', {}, { params: { id: 1 } })
 
-            testSubject.getExerciseFromId(req, res).then( () => {
+            testSubject.getExerciseFromId(req, res).then(() => {
                 expect(res.status).toHaveBeenCalledWith(200)
             })
         })
 
         it('should set status 400 with invalid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -95,9 +93,7 @@ describe('ExerciseService', () => {
     })
 
     describe('putExercise()', () => {
-
         it('should set status 200 with valid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -110,7 +106,6 @@ describe('ExerciseService', () => {
         })
 
         it('should set status 400 with invalid req body', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -123,7 +118,6 @@ describe('ExerciseService', () => {
         })
 
         it('should set status 400 with invalid param', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},
@@ -137,9 +131,7 @@ describe('ExerciseService', () => {
     })
 
     describe('deleteExercise()', () => {
-
         it('should set status 200 with valid input', () => {
-
             req = jasmine.createSpyObj('Request', {}, { params: { id: 1 } })
 
             testSubject.deleteExercise(req, res).then(() => {
@@ -148,7 +140,6 @@ describe('ExerciseService', () => {
         })
 
         it('should set status 400 with invalid input', () => {
-
             req = jasmine.createSpyObj(
                 'Request',
                 {},

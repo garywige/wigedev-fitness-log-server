@@ -18,8 +18,7 @@ export class ExerciseService {
         try {
             this._tokenService = TokenService.instance
             this._db = Database.instance.db
-        }
-        catch(e){
+        } catch (e) {
             console.error(e)
         }
     }
@@ -35,27 +34,41 @@ export class ExerciseService {
     async getExercises(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
 
         const output = {
-            exercises: []
+            exercises: [],
         }
 
         try {
             // get exercises associated with this user
-            const exercises = await this._db.collection('exercises').find({ user_id: new ObjectId(tokenPackage?.id)}, { projection: { _id: 1, name: 1}})
+            const exercises = await this._db
+                .collection('exercises')
+                .find(
+                    { user_id: new ObjectId(tokenPackage?.id) },
+                    { projection: { _id: 1, name: 1 } }
+                )
 
             // grab workout count for each workout
-            await exercises.forEach(doc => {
-                this._db.collection('sets').countDocuments({ exercise_id: new ObjectId(doc._id)}).then(count => {
-                    output.exercises.push({id: doc._id?.toHexString(), name: doc.name, 
-                        setCount: count})
-                })
+            await exercises.forEach((doc) => {
+                this._db
+                    .collection('sets')
+                    .countDocuments({ exercise_id: new ObjectId(doc._id) })
+                    .then((count) => {
+                        output.exercises.push({
+                            id: doc._id?.toHexString(),
+                            name: doc.name,
+                            setCount: count,
+                        })
+                    })
             })
-
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -68,7 +81,11 @@ export class ExerciseService {
     async postExercises(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -84,8 +101,11 @@ export class ExerciseService {
         try {
             // business logic
             const db = Database.instance.db
-            document = await db.collection('exercises').insertOne({ user_id: new ObjectId(tokenPackage.id), name: body?.name})
-        } catch (e){
+            document = await db.collection('exercises').insertOne({
+                user_id: new ObjectId(tokenPackage.id),
+                name: body?.name,
+            })
+        } catch (e) {
             res.status(500).send(InternalServerError)
             return
         }
@@ -102,7 +122,11 @@ export class ExerciseService {
     async getExerciseFromId(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -115,21 +139,25 @@ export class ExerciseService {
 
         const output = {
             id: '',
-            name: ''
+            name: '',
         }
         try {
             // get the exercise
             const db = Database.instance.db
-            const row = await db.collection('exercises').findOne({ _id: new ObjectId(req.params?.id)}, { projection: {_id: 1, user_id: 1, name: 1}})
+            const row = await db
+                .collection('exercises')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { _id: 1, user_id: 1, name: 1 } }
+                )
             output.id = row?._id.toHexString()
             output.name = row?.name
 
             // verify that user is authorized to access this exercise
-            if(tokenPackage?.id !== row?.user_id?.toHexString()){
+            if (tokenPackage?.id !== row?.user_id?.toHexString()) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
-
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -141,7 +169,11 @@ export class ExerciseService {
     async putExercise(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -156,14 +188,24 @@ export class ExerciseService {
         try {
             // verify that exercise belongs to user
             const db = Database.instance.db
-            const row = await db.collection('exercises').findOne({ _id: new ObjectId(req.params?.id)}, { projection: { _id: 0, user_id: 1 }})
-            if(row?.user_id?.toHexString() !== tokenPackage?.id){
+            const row = await db
+                .collection('exercises')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { _id: 0, user_id: 1 } }
+                )
+            if (row?.user_id?.toHexString() !== tokenPackage?.id) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
 
             // update the exercise
-            await db.collection('exercises').updateOne({ _id: new ObjectId(req.params?.id)}, { $set: { name: body?.name }})
+            await db
+                .collection('exercises')
+                .updateOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { $set: { name: body?.name } }
+                )
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -181,7 +223,11 @@ export class ExerciseService {
     async deleteExercise(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -194,16 +240,22 @@ export class ExerciseService {
 
         try {
             // validate that this belongs to the user
-            const row = await Database.instance.db.collection('exercises')
-                .findOne({ _id: new ObjectId(req.params?.id)}, { projection: { _id: 0, user_id: 1}})
-            if(row?.user_id?.toHexString() !== tokenPackage?.id){
+            const row = await Database.instance.db
+                .collection('exercises')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { _id: 0, user_id: 1 } }
+                )
+            if (row?.user_id?.toHexString() !== tokenPackage?.id) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
 
             // delete the exercise
-            const result = await Database.instance.db.collection('exercises').deleteOne({ _id: new ObjectId(req.params?.id)})
-            if(result?.deletedCount < 1)
+            const result = await Database.instance.db
+                .collection('exercises')
+                .deleteOne({ _id: new ObjectId(req.params?.id) })
+            if (result?.deletedCount < 1)
                 throw Error('Failed to delete exercise')
         } catch {
             res.status(500).send(InternalServerError)

@@ -5,18 +5,18 @@ export class Database {
     private static _instance: Database
 
     static get instance(): Database {
-        if(!this._instance){
+        if (!this._instance) {
             this._instance = new Database()
         }
 
         return this._instance
     }
 
-    get db() : Db {
+    get db(): Db {
         return this._client.db('wfl')
     }
 
-    public connect(){
+    public connect() {
         setTimeout(() => {
             try {
                 this._client = new MongoClient(process.env.CONNECTION_STRING)

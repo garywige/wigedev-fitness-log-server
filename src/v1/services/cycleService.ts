@@ -28,37 +28,51 @@ export class CycleService {
     async getCycles(req: Request, res: Response) {
         // verify authorization
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
 
         const output = {
-            cycles: []
+            cycles: [],
         }
         try {
             const db = Database.instance.db
 
             // get all cycles associated with this user ID
-            const cycles = db.collection('cycles')
-                .find({ user_id: new ObjectId(tokenPackage?.id)}, { projection: { _id: 1, name: 1}})
+            const cycles = db
+                .collection('cycles')
+                .find(
+                    { user_id: new ObjectId(tokenPackage?.id) },
+                    { projection: { _id: 1, name: 1 } }
+                )
 
             // for each cycle
-            await cycles.forEach(cycle => {
-
+            await cycles.forEach((cycle) => {
                 // get workout count
-                this.getWorkoutCount(cycle._id.toHexString()).then(async count => {
+                this.getWorkoutCount(cycle._id.toHexString()).then(
+                    async (count) => {
+                        // get date of last workout
+                        const lastWorkout = await this.getLastWorkoutDate(
+                            cycle._id.toHexString()
+                        )
 
-                    // get date of last workout
-                    const lastWorkout = await this.getLastWorkoutDate(cycle._id.toHexString())
-
-                    // add to output array
-                    output.cycles.push({id: cycle._id.toHexString(), name: cycle?.name, modified: lastWorkout, workoutCount: count})
-                })
+                        // add to output array
+                        output.cycles.push({
+                            id: cycle._id.toHexString(),
+                            name: cycle?.name,
+                            modified: lastWorkout,
+                            workoutCount: count,
+                        })
+                    }
+                )
             })
 
             setTimeout(() => res.status(200).send(output), 100)
-
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -68,7 +82,11 @@ export class CycleService {
     async postCycles(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -83,7 +101,12 @@ export class CycleService {
         let result: InsertOneResult
         try {
             // add cycle to collection
-            result = await Database.instance.db.collection('cycles').insertOne({ user_id: new ObjectId(tokenPackage?.id), name: body.name, modified: '1970-01-01', workoutCount: 0})
+            result = await Database.instance.db.collection('cycles').insertOne({
+                user_id: new ObjectId(tokenPackage?.id),
+                name: body.name,
+                modified: '1970-01-01',
+                workoutCount: 0,
+            })
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -103,7 +126,11 @@ export class CycleService {
     async getCycleFromId(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -124,21 +151,29 @@ export class CycleService {
             const db = Database.instance.db
 
             // verify cycle is for this user id
-            const cycleRow = await db.collection('cycles').findOne({ _id: new ObjectId(req.params?.id)}, { projection: { user_id: 1, name: 1}})
-            if(cycleRow.user_id?.toHexString() !== tokenPackage.id){
+            const cycleRow = await db
+                .collection('cycles')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { user_id: 1, name: 1 } }
+                )
+            if (cycleRow.user_id?.toHexString() !== tokenPackage.id) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
 
             // get date of last workout
-            output.modified = await this.getLastWorkoutDate(cycleRow?._id?.toHexString())
+            output.modified = await this.getLastWorkoutDate(
+                cycleRow?._id?.toHexString()
+            )
 
             // get workout count
-            output.workoutCount = await this.getWorkoutCount(cycleRow?._id?.toHexString())
+            output.workoutCount = await this.getWorkoutCount(
+                cycleRow?._id?.toHexString()
+            )
 
             // set output
             output.name = cycleRow.name
-        
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -150,7 +185,11 @@ export class CycleService {
     async putCycleFromId(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -168,15 +207,22 @@ export class CycleService {
         try {
             // validate that this cycle belongs to this user
             const db = Database.instance.db
-            cycle = await db.collection('cycles').findOne({_id: new ObjectId(req.params?.id)})
-            if(cycle.user_id?.toHexString() !== tokenPackage.id){
+            cycle = await db
+                .collection('cycles')
+                .findOne({ _id: new ObjectId(req.params?.id) })
+            if (cycle.user_id?.toHexString() !== tokenPackage.id) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
 
             // update the cycle
-            const result = await db.collection('cycles').updateOne({ _id: new ObjectId(req.params?.id)}, { $set: { name: body.name }})
-            if(result.modifiedCount < 1){
+            const result = await db
+                .collection('cycles')
+                .updateOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { $set: { name: body.name } }
+                )
+            if (result.modifiedCount < 1) {
                 throw Error('failed to update cycle')
             }
 
@@ -204,7 +250,11 @@ export class CycleService {
     async deleteCycle(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
-        if(!(tokenPackage = await this._tokenService.extractTokenPackage(req?.headers?.authorization ?? ''))){
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
             res.status(401).send(UnauthorizedError)
             return
         }
@@ -218,17 +268,21 @@ export class CycleService {
         try {
             // verify that this is for this user
             const db = Database.instance.db
-            const cycle = await db.collection('cycles').findOne({ _id: new ObjectId(req.params?.id)})
-            if(cycle.user_id?.toHexString() !== tokenPackage.id){
+            const cycle = await db
+                .collection('cycles')
+                .findOne({ _id: new ObjectId(req.params?.id) })
+            if (cycle.user_id?.toHexString() !== tokenPackage.id) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
 
             // delete the cycle
-            const result = await db.collection('cycles').deleteOne({ _id: new ObjectId(req.params.id)})
+            const result = await db
+                .collection('cycles')
+                .deleteOne({ _id: new ObjectId(req.params.id) })
 
             // check for results
-            if(result?.deletedCount < 1){
+            if (result?.deletedCount < 1) {
                 throw Error('failed to delete cycle')
             }
         } catch {
@@ -241,17 +295,19 @@ export class CycleService {
         res.status(200).send(output)
     }
 
-    private async getLastWorkoutDate(cycle_id: string) : Promise<string> {
+    private async getLastWorkoutDate(cycle_id: string): Promise<string> {
         // get workouts in this cycle
         const db = Database.instance.db
-        const workouts = await db.collection('workouts').find({ cycle_id: new ObjectId(cycle_id)})
+        const workouts = await db
+            .collection('workouts')
+            .find({ cycle_id: new ObjectId(cycle_id) })
 
         // iterate through each one
         let lastWorkout = new Date('1970-01-01')
-        await workouts.forEach( workout => {
+        await workouts.forEach((workout) => {
             // store the date if it's newer
             const workoutDate = new Date(workout.date)
-            if(workoutDate > lastWorkout){
+            if (workoutDate > lastWorkout) {
                 lastWorkout = workoutDate
             }
         })
@@ -260,10 +316,12 @@ export class CycleService {
         return lastWorkout.toISOString().split('T')[0]
     }
 
-    private async getWorkoutCount(cycle_id: string) : Promise<number> {
+    private async getWorkoutCount(cycle_id: string): Promise<number> {
         const db = Database.instance.db
 
-        return await db.collection('workouts').countDocuments({ cycle_id: new ObjectId(cycle_id)})
+        return await db
+            .collection('workouts')
+            .countDocuments({ cycle_id: new ObjectId(cycle_id) })
     }
 }
 

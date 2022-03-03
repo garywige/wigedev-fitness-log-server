@@ -31,13 +31,18 @@ describe('UserService', () => {
                 { body: { email: 'test@test.com', password: 'password' } }
             )
 
-            spyOn<any>(testSubject, 'compareCredentials').and.returnValue(new Promise(() => true))
-            spyOn<any>(testSubject, 'getId').and.returnValue(new Promise(() => new ObjectId(1)))
-            spyOn<any>(testSubject, 'getRole').and.returnValue(new Promise(() => 'free'))
+            spyOn<any>(testSubject, 'compareCredentials').and.returnValue(
+                new Promise(() => true)
+            )
+            spyOn<any>(testSubject, 'getId').and.returnValue(
+                new Promise(() => new ObjectId(1))
+            )
+            spyOn<any>(testSubject, 'getRole').and.returnValue(
+                new Promise(() => 'free')
+            )
 
             // Act
             testSubject.postSignin(req, res).then(() => {
-
                 // Assert
                 expect(res.status).toHaveBeenCalledWith(200)
             })
@@ -56,7 +61,6 @@ describe('UserService', () => {
 
     describe('postSignup()', () => {
         it('should call status with 201 when request body is valid', () => {
-            
             // Arrange
             req = jasmine.createSpyObj(
                 'Request',
@@ -74,7 +78,6 @@ describe('UserService', () => {
 
             // Act
             testSubject.postSignup(req, res).then(() => {
-
                 // Assert
                 expect(res.status).toHaveBeenCalledWith(201)
             })
@@ -92,60 +95,54 @@ describe('UserService', () => {
     })
 
     describe('createUser()', () => {
-
         beforeEach(() => {
             testSubject['_db'] = <Db>{}
-            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
-                countDocuments(filter: any): Promise<number> {
-                    return Promise.resolve((filter?.email === 'test') ? 1 : 0)
-                },
-                insertOne(){
-                    return new Promise( resolve => resolve(true))
-                }
-            })
+            testSubject['_db'].collection = jasmine
+                .createSpy<any>('collection', testSubject['_db'].collection)
+                .and.returnValue({
+                    countDocuments(filter: any): Promise<number> {
+                        return Promise.resolve(filter?.email === 'test' ? 1 : 0)
+                    },
+                    insertOne() {
+                        return new Promise((resolve) => resolve(true))
+                    },
+                })
         })
-        
-        it('should return false when providing an existing email address', done => {
 
+        it('should return false when providing an existing email address', (done) => {
             // Arrange
             const body = {
                 email: 'test',
                 password: 'test',
-                accountType: AccountType.Free
+                accountType: AccountType.Free,
             }
 
-
             // Act
-            testSubject['createUser'](body).then(result => {
-
+            testSubject['createUser'](body).then((result) => {
                 // Assert
                 expect(result).toEqual(false)
                 done()
             })
-
         })
 
-        it('should return true when provided email address doesn\'t exist in the users collection', done => {
+        it("should return true when provided email address doesn't exist in the users collection", (done) => {
             // Arrange
             const body = {
                 email: 'not same test :P',
                 password: 'password',
-                accountType: AccountType.Free
+                accountType: AccountType.Free,
             }
 
-
             // Act
-            testSubject['createUser'](body).then(result => {
-
+            testSubject['createUser'](body).then((result) => {
                 // Assert
                 expect(result).toEqual(true)
                 done()
             })
-        })  
+        })
     })
 
     describe('compareCredentials()', () => {
-
         let body: SigninReqBody
 
         beforeEach(() => {
@@ -153,41 +150,39 @@ describe('UserService', () => {
             const salt = bcrypt.genSaltSync()
 
             testSubject['_db'] = <Db>{}
-            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
-                findOne(){
-                    return new Promise((resolve, reject) => {
-                        resolve({
-                            salt: salt,
-                            hash: bcrypt.hashSync('test', salt)
+            testSubject['_db'].collection = jasmine
+                .createSpy<any>('collection', testSubject['_db'].collection)
+                .and.returnValue({
+                    findOne() {
+                        return new Promise((resolve, reject) => {
+                            resolve({
+                                salt: salt,
+                                hash: bcrypt.hashSync('test', salt),
+                            })
                         })
-                    })
-                }
-            })
+                    },
+                })
 
             body = {
                 email: 'test',
-                password: 'test'
+                password: 'test',
             }
         })
 
         it('should return true when password hash matches', () => {
-
             // Act
-            testSubject['compareCredentials'](body).then(result => {
-
+            testSubject['compareCredentials'](body).then((result) => {
                 // Assert
                 expect(result).toEqual(true)
             })
         })
 
         it('should return false when password hash matches', () => {
-
             // Arrange
             body.password = 'different password'
 
             // Act
-            testSubject['compareCredentials'](body).then(result => {
-
+            testSubject['compareCredentials'](body).then((result) => {
                 // Assert
                 expect(result).toEqual(false)
             })
@@ -195,14 +190,15 @@ describe('UserService', () => {
     })
 
     describe('getRole()', () => {
-
         it('should call findOne()', () => {
             // Arrange
             const spy = jasmine.createSpy<any>('findOne')
             testSubject['_db'] = <Db>{}
-            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
-                findOne: spy
-            })
+            testSubject['_db'].collection = jasmine
+                .createSpy<any>('collection', testSubject['_db'].collection)
+                .and.returnValue({
+                    findOne: spy,
+                })
 
             // Act
             testSubject['getRole']('test')
@@ -213,14 +209,15 @@ describe('UserService', () => {
     })
 
     describe('getId()', () => {
-
         it('should call findOne()', () => {
             // Arrange
             const spy = jasmine.createSpy<any>('findOne')
             testSubject['_db'] = <Db>{}
-            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
-                findOne: spy
-            })
+            testSubject['_db'].collection = jasmine
+                .createSpy<any>('collection', testSubject['_db'].collection)
+                .and.returnValue({
+                    findOne: spy,
+                })
 
             // Act
             testSubject['getId']('test')
