@@ -10,6 +10,7 @@ import { TokenPackage, TokenService } from './tokenService'
 import { Database } from '../../database/database'
 import { ObjectId } from 'mongodb'
 import { validateDate } from './validation'
+
 export class WorkoutService {
     private static _instance: WorkoutService
     private _tokenService: TokenService
@@ -356,7 +357,7 @@ interface SetReqBody {
     repsPerformed: number | null
 }
 
-enum Unit {
+export enum Unit {
     Lbs = 'lbs',
     KG = 'kg',
 }

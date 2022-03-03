@@ -1,5 +1,7 @@
 import { Request, Response } from 'express'
-import { WorkoutService } from './workoutService'
+import { Unit, WorkoutService } from './workoutService'
+
+import { Database } from '../../database/database'
 import { ObjectId } from 'mongodb'
 
 describe('WorkoutService', () => {
@@ -153,5 +155,28 @@ describe('WorkoutService', () => {
                 expect(res.status).toHaveBeenCalledWith(400)
             )
         })
+    })
+
+    describe('createSet()', () => {
+
+        it('should call insertOne()', () => {
+
+            // Arrange
+            const spy = jasmine.createSpy('insertOne')
+            spyOnProperty<any>(Database.instance, 'db', 'get').and.returnValue({
+                collection(){
+                    return {
+                        insertOne: spy
+                    }
+                }
+            })
+
+            // Act
+            testSubject['createSet']('621bd519c0a89c2c785bcbaa', '621bd519c0a89c2c785bcbaa', 1, 'lbs' as Unit, 1, 1).then(() => {
+
+                // Assert
+                expect(spy).toHaveBeenCalled()
+            })
+        })        
     })
 })
