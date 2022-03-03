@@ -102,7 +102,7 @@ export class UserService {
     }
 
     private async createUser(body: SignupReqBody): Promise<boolean> {
-        return new Promise((resolve, reject) =>
+        return new Promise((resolve) =>
             bcrypt.genSalt().then((salt) => {
                 bcrypt.hash(body?.password, salt).then(
                     (hash) => {
