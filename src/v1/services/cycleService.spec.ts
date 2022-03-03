@@ -1,6 +1,8 @@
-import { CycleService } from './cycleService'
 import { Request, Response } from 'express'
-import { ObjectId} from 'mongodb'
+
+import { CycleService } from './cycleService'
+import { Database } from '../../database/database'
+import { ObjectId } from 'mongodb'
 
 describe('CycleService', () => {
     let testSubject: CycleService
@@ -158,6 +160,37 @@ describe('CycleService', () => {
 
             testSubject.deleteCycle(req, res).then(() => {
                 expect(res.status).toHaveBeenCalledWith(400)
+            })
+        })
+    })
+
+    describe('getLastWorkoutDate()', () => {
+        
+        it('should return the latest date provided in the collection', () => {
+            // Arrange
+            const workouts = [
+                { date: new Date('1990-01-01')},
+                { date: new Date('1989-01-01')},
+                { date: new Date('2020-01-01')},
+                { date: new Date('1987-01-01')},
+                { date: new Date('1986-01-01')}
+            ]
+
+            spyOnProperty<any>(Database.instance, 'db', 'get').and.returnValue({
+                collection(){
+                    return {
+                        find(){
+                            return workouts
+                        }
+                    }
+                }
+            })
+
+            // Act
+            testSubject['getLastWorkoutDate']('621bd519c0a89c2c785bcbaa').then(result => {
+
+                // Assert
+                expect(result).toEqual('2020-01-01')
             })
         })
     })
