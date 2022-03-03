@@ -1,15 +1,26 @@
 import { Request, Response } from 'express'
+import { Db, InsertOneResult, ObjectId } from 'mongodb'
+import { Database } from '../../database/database'
 import {
     BadRequestError,
     InternalServerError,
     ServerMessage,
+    UnauthorizedError,
 } from './responses'
-import { validateInt } from './validation'
+import { TokenPackage, TokenService } from './tokenService'
+
 export class ExerciseService {
     private static _instance: ExerciseService
+    private _tokenService: TokenService
+    private _db: Db
 
     private constructor() {
-        console.log('ExerciseService instantiated...')
+        try {
+            this._tokenService = TokenService.instance
+            this._db = Database.instance.db
+        } catch (e) {
+            console.error(e)
+        }
     }
 
     static get instance(): ExerciseService {
@@ -22,30 +33,62 @@ export class ExerciseService {
 
     async getExercises(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
+
+        const output = {
+            exercises: [],
+        }
 
         try {
-            // business logic
+            // get exercises associated with this user
+            const exercises = await this._db
+                .collection('exercises')
+                .find(
+                    { user_id: new ObjectId(tokenPackage?.id) },
+                    { projection: { _id: 1, name: 1 } }
+                )
+
+            // grab workout count for each workout
+            await exercises.forEach((doc) => {
+                this._db
+                    .collection('sets')
+                    .countDocuments({ exercise_id: new ObjectId(doc._id) })
+                    .then((count) => {
+                        output.exercises.push({
+                            id: doc._id?.toHexString(),
+                            name: doc.name,
+                            setCount: count,
+                        })
+                    })
+            })
         } catch {
             res.status(500).send(InternalServerError)
             return
         }
 
-        // format output
-        const output = {
-            exercises: [
-                {
-                    id: 1337,
-                    name: 'Bench Press',
-                    workoutCount: 37,
-                },
-            ],
-        }
-
-        res.status(200).send(output)
+        // send output
+        setTimeout(() => res.status(200).send(output), 1000)
     }
 
     async postExercises(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as ExerciseReqBody
@@ -54,17 +97,23 @@ export class ExerciseService {
             return
         }
 
+        let document: InsertOneResult
         try {
             // business logic
-        } catch {
+            const db = Database.instance.db
+            document = await db.collection('exercises').insertOne({
+                user_id: new ObjectId(tokenPackage.id),
+                name: body?.name,
+            })
+        } catch (e) {
             res.status(500).send(InternalServerError)
             return
         }
 
         // format output
         const output = {
-            id: 1337,
-            name: 'Bench Press',
+            id: document.insertedId,
+            name: body?.name,
         }
 
         res.status(201).send(output)
@@ -72,24 +121,46 @@ export class ExerciseService {
 
     async getExerciseFromId(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateInt(req.params?.id)) {
+        if (!req.params?.id) {
             res.status(400).send(BadRequestError)
             return
         }
 
+        const output = {
+            id: '',
+            name: '',
+        }
         try {
-            // business logic
+            // get the exercise
+            const db = Database.instance.db
+            const row = await db
+                .collection('exercises')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { _id: 1, user_id: 1, name: 1 } }
+                )
+            output.id = row?._id.toHexString()
+            output.name = row?.name
+
+            // verify that user is authorized to access this exercise
+            if (tokenPackage?.id !== row?.user_id?.toHexString()) {
+                res.status(401).send(UnauthorizedError)
+                return
+            }
         } catch {
             res.status(500).send(InternalServerError)
             return
-        }
-
-        // format output
-        const output = {
-            id: 1337,
-            name: 'Bench Press',
         }
 
         res.status(200).send(output)
@@ -97,16 +168,44 @@ export class ExerciseService {
 
     async putExercise(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
         const body = req.body as ExerciseReqBody
-        if (!validateInt(req.params?.id) || !body?.name) {
+        if (!req.params?.id || !body?.name) {
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // business logic
+            // verify that exercise belongs to user
+            const db = Database.instance.db
+            const row = await db
+                .collection('exercises')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { _id: 0, user_id: 1 } }
+                )
+            if (row?.user_id?.toHexString() !== tokenPackage?.id) {
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // update the exercise
+            await db
+                .collection('exercises')
+                .updateOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { $set: { name: body?.name } }
+                )
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -114,8 +213,8 @@ export class ExerciseService {
 
         // format output
         const output = {
-            id: 1337,
-            name: 'Bench Press',
+            id: req.params?.id,
+            name: body?.name,
         }
 
         res.status(200).send(output)
@@ -123,15 +222,41 @@ export class ExerciseService {
 
     async deleteExercise(req: Request, res: Response) {
         // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
 
         // validate input
-        if (!validateInt(req.params?.id)) {
+        if (!req.params?.id) {
             res.status(400).send(BadRequestError)
             return
         }
 
         try {
-            // business logic
+            // validate that this belongs to the user
+            const row = await Database.instance.db
+                .collection('exercises')
+                .findOne(
+                    { _id: new ObjectId(req.params?.id) },
+                    { projection: { _id: 0, user_id: 1 } }
+                )
+            if (row?.user_id?.toHexString() !== tokenPackage?.id) {
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // delete the exercise
+            const result = await Database.instance.db
+                .collection('exercises')
+                .deleteOne({ _id: new ObjectId(req.params?.id) })
+            if (result?.deletedCount < 1)
+                throw Error('Failed to delete exercise')
         } catch {
             res.status(500).send(InternalServerError)
             return

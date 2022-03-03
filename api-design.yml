@@ -62,7 +62,7 @@ components:
       type: object
       properties:
           id:
-            type: integer
+            type: string
           name:
             type: string
           modified:
@@ -75,29 +75,32 @@ components:
         - modified
         - workoutCount
       example:
-        id: 1337
+        id: '1337'
         name: "Starting Strength"
-        modified: '20220222'
+        modified: '2022-02-22'
         workoutCount: 15
     Exercise:
       type: object
       properties:
         id:
-          type: integer
+          type: string
         name:
           type: string
       required:
         - id
         - name
       example:
-        id: 1337
+        id: '1337'
         name: "Bench Press"
     Workout:
       type: object
       properties:
         date:
           type: string
-          example: '20220222'
+          example: '2022-02-22'
+        cycleId:
+          type: string
+          example: '1337'
         sets:
           type: array
           items:
@@ -109,8 +112,8 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          example: 1337
+          type: string
+          example: '1337'
         exercise:
           $ref: '#/components/schemas/Exercise'
         weight:
@@ -304,7 +307,7 @@ paths:
           required: true
           name: id
           schema:
-            type: integer
+            type: string
           description: The ID of the Cycle being read.
       responses:
         '200': # Response
@@ -330,7 +333,7 @@ paths:
           required: true
           name: id
           schema:
-            type: integer
+            type: string
           description: The ID of the Cycle being updated
       requestBody:
         required: true
@@ -369,7 +372,7 @@ paths:
           required: true
           name: id
           schema:
-            type: integer
+            type: string
           description: The ID of the Cycle being deleted
       responses:
         '200': # Response
@@ -401,17 +404,17 @@ paths:
                       type: object
                       properties:
                         id:
-                          type: integer
+                          type: string
                         name:
                           type: string
-                        workoutCount:
+                        setCount:
                           type: integer
                       required:
                         - id
                         - name
                         - workoutCount
                       example:
-                        id: 1337
+                        id: '1337'
                         name: "Bench Press"
                         workoutCount: 37
                 required:
@@ -463,7 +466,7 @@ paths:
           required: true
           name: id
           schema:
-            type: integer
+            type: string
           description: The id of the Exercise to read
       responses:
         '200': # Response
@@ -489,7 +492,7 @@ paths:
           required: true
           name: id
           schema:
-            type: integer
+            type: string
           description: The id of the Exercise to update
       requestBody:
         required: true
@@ -528,7 +531,7 @@ paths:
           required: true
           name: id
           schema:
-            type: integer
+            type: string
           description: The id of the Exercise to delete
       responses:
         '200': # Response
@@ -551,7 +554,7 @@ paths:
           required: true
           name: cycle
           schema:
-            type: integer
+            type: string
           description: The cycle ID of the workouts requested
       responses:
         '200': # Response
@@ -574,7 +577,7 @@ paths:
                         - date
                         - setCount
                       example:
-                        date: '20220222'
+                        date: '2022-02-22'
                         setCount: 16
                 required:
                   - workouts
@@ -598,18 +601,22 @@ paths:
               type: object
               required:
                 - date
+                - cycleId
                 - sets
               properties:
                 date:
                   type: string
-                  example: '20220222'
+                  example: '2022-02-22'
+                cycleId:
+                  type: string
+                  example: '1337'
                 sets:
                   type: array
                   items:
                     type: object
                     properties:
                       exerciseId:
-                        type: integer
+                        type: string
                       weight:
                         type: number
                       unit:
@@ -627,7 +634,7 @@ paths:
                       - unit
                       - repsPrescribed
                     example:
-                      exerciseId: 1337
+                      exerciseId: '1337'
                       weight: 135
                       unit: "lbs"
                       repsPrescribed: 10
@@ -658,6 +665,12 @@ paths:
           description: Date of the workout
           schema:
             type: string
+        - in: query
+          name: cycle
+          required: true
+          description: Cycle that workout is a part of
+          schema:
+            type: string
       responses:
         '200': # Response
           description: OK
@@ -667,11 +680,15 @@ paths:
                 type: object
                 required:
                   - date
+                  - cycleId
                   - sets
                 properties:
                   date:
                     type: string
-                    example: '20220222'
+                    example: '2022-02-22'
+                  cycleId:
+                    type: string
+                    example: '1337'
                   sets:
                     type: array
                     items:
@@ -695,6 +712,12 @@ paths:
           description: Date of the workout
           schema:
             type: string
+        - in: query
+          name: cycle
+          required: true
+          description: Cycle the workout belongs to
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -710,7 +733,7 @@ paths:
                     type: object
                     properties:
                       exerciseId:
-                        type: integer
+                        type: string
                       weight:
                         type: number
                       unit:
@@ -728,7 +751,7 @@ paths:
                       - unit
                       - repsPrescribed
                     example:
-                      exerciseId: 1337
+                      exerciseId: '1337'
                       weight: 135
                       unit: "lbs"
                       repsPrescribed: 10
@@ -756,6 +779,12 @@ paths:
           name: date
           required: true
           description: Date of the workout
+          schema:
+            type: string
+        - in: query
+          name: cycle
+          required: true
+          description: Cycle the workout belongs to.
           schema:
             type: string
       responses:
