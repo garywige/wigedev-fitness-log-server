@@ -6,7 +6,6 @@ import { Request, Response } from 'express'
 
 import { Database } from '../../database/database'
 import { TokenService } from './tokenService'
-import { resolve } from 'path/posix'
 
 export class UserService {
     private static _instance: UserService
@@ -137,7 +136,7 @@ export class UserService {
     }
 }
 
-interface SigninReqBody {
+export interface SigninReqBody {
     email: string
     password: string
 }

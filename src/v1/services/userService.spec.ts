@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 
 import { Db, ObjectId } from 'mongodb'
-import { UserService, AccountType } from './userService'
+import { UserService, AccountType, SigninReqBody } from './userService'
+import * as bcrypt from 'bcrypt'
 
 describe('UserService', () => {
     let testSubject: UserService
@@ -141,5 +142,55 @@ describe('UserService', () => {
                 done()
             })
         })  
+    })
+
+    describe('compareCredentials()', () => {
+
+        let body: SigninReqBody
+
+        beforeEach(() => {
+            // Arrange
+            const salt = bcrypt.genSaltSync()
+
+            testSubject['_db'] = <Db>{}
+            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
+                findOne(){
+                    return new Promise((resolve, reject) => {
+                        resolve({
+                            salt: salt,
+                            hash: bcrypt.hashSync('test', salt)
+                        })
+                    })
+                }
+            })
+
+            body = {
+                email: 'test',
+                password: 'test'
+            }
+        })
+
+        it('should return true when password hash matches', () => {
+
+            // Act
+            testSubject['compareCredentials'](body).then(result => {
+
+                // Assert
+                expect(result).toEqual(true)
+            })
+        })
+
+        it('should return false when password hash matches', () => {
+
+            // Arrange
+            body.password = 'different password'
+
+            // Act
+            testSubject['compareCredentials'](body).then(result => {
+
+                // Assert
+                expect(result).toEqual(false)
+            })
+        })
     })
 })
