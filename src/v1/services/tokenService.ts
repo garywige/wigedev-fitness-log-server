@@ -20,7 +20,7 @@ export class TokenService {
             role: role
         }
 
-        return jwt.sign(payload, process.env['JWT_SECRET'] ?? '', {
+        return jwt.sign(payload, process.env['JWT_SECRET'] ?? 'default', {
             expiresIn: '1d'
         })
     }
@@ -29,7 +29,7 @@ export class TokenService {
 
         try {
             const token = authHeader?.split(' ')[1] ?? ''
-            return jwt.verify(token, process.env['JWT_SECRET'] ?? '') as TokenPackage
+            return jwt.verify(token, process.env['JWT_SECRET'] ?? 'default') as TokenPackage
         } catch {
             return null
         }
