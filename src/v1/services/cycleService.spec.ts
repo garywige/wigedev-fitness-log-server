@@ -194,4 +194,27 @@ describe('CycleService', () => {
             })
         })
     })
+
+    describe('getWorkoutCount()', () => {
+        
+        it('should call countDocuments()', () => {
+
+            // Arrange
+            const spy = jasmine.createSpy('countDocuments')
+            spyOnProperty<any>(Database.instance, 'db', 'get').and.returnValue({
+                collection(){
+                    return {
+                        countDocuments: spy
+                    }
+                }
+            })
+
+            // Act
+            testSubject['getWorkoutCount']('621bd519c0a89c2c785bcbaa').then(() => {
+
+                // Assert
+                expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
 })
