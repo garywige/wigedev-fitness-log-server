@@ -211,4 +211,22 @@ describe('UserService', () => {
             expect(spy).toHaveBeenCalled()
         })
     })
+
+    describe('getId()', () => {
+
+        it('should call findOne()', () => {
+            // Arrange
+            const spy = jasmine.createSpy<any>('findOne')
+            testSubject['_db'] = <Db>{}
+            testSubject['_db'].collection = jasmine.createSpy<any>('collection', testSubject['_db'].collection).and.returnValue({
+                findOne: spy
+            })
+
+            // Act
+            testSubject['getId']('test')
+
+            // Assert
+            expect(spy).toHaveBeenCalled()
+        })
+    })
 })
