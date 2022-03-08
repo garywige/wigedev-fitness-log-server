@@ -85,6 +85,7 @@ export class UserService {
             // create new user account
             if (await this.createUser(body)) {
                 res.status(500).send(InternalServerError)
+                return
             }
 
             // initiate email verification depending on accountType

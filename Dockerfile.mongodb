@@ -1,0 +1,5 @@
+FROM mongo:4
+
+COPY ./data/seedMongo.js /docker-entrypoint-initdb.d/
+
+ENV MONGO_INITDB_DATABASE=wfl

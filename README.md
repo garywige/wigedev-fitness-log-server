@@ -13,6 +13,10 @@ This is the API server for the WFL project located [here](https://github.com/gar
 - `npm run lint`: performs a lint check using eslint
 - `npm run lint:fix`: automatically fixes lint violations
 - `npm run test`: runs jasmine on any transpiled spec files
+- `npm run docker:buildmongo`: builds docker image hosting the MongoDB database
+- `npm run docker:runmongo`: runs the mongo docker image locally on port 27017
+- `npm run docker:build`: builds docker image hosting the server project
+- `npm run docker:run`: runs the server docker image locally on port 3000
 
 ## API Design
 

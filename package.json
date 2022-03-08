@@ -1,6 +1,6 @@
 {
   "name": "wigedev-fitness-log-server",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "API server for WFL",
   "main": "src/index.js",
   "scripts": {
@@ -12,7 +12,11 @@
     "style:fix": "npx prettier --write 'src/**'",
     "lint": "npx eslint src/** --no-error-on-unmatched-pattern",
     "lint:fix": "npx eslint src/** --fix --no-error-on-unmatched-pattern",
-    "test": "npx jasmine \"dist/**/**.spec.js\""
+    "test": "npx jasmine \"dist/**/**.spec.js\"",
+    "docker:buildmongo": "docker build -f Dockerfile.mongodb -t garywige/wfl-server-mongo:latest .",
+    "docker:runmongo": "docker run -d -p 27017:27017 garywige/wfl-server-mongo:latest",
+    "docker:build": "docker build -t garywige/wfl-server:latest .",
+    "docker:run": "docker run -d -p 3000:3000 garywige/wfl-server:latest"
   },
   "repository": {
     "type": "git",
