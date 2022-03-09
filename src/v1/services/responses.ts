@@ -15,3 +15,7 @@ export const UnauthorizedError = new ServerMessage(
 export const InternalServerError = new ServerMessage(
     'An internal server error occurred. Please try again later.'
 )
+
+export const ForbiddenError = new ServerMessage(
+    'You are not authorized to perform this action'
+)

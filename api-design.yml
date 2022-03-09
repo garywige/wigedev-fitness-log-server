@@ -31,6 +31,15 @@ components:
             type: string
           example:
             message: "You are not authorized to use this interface"
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ServerMessage'
+            type: string
+          example:
+            message: "You are not authorized to perform this action"
     BadRequestError:
       description: Bad Request
       content:
@@ -649,6 +658,8 @@ paths:
           $ref: '#/components/responses/BadRequestError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /v1/workout/{date}:

@@ -1,5 +1,6 @@
 import {
     BadRequestError,
+    ForbiddenError,
     InternalServerError,
     ServerMessage,
     UnauthorizedError,
@@ -122,7 +123,7 @@ export class WorkoutService {
                 .collection('cycles')
                 .findOne({ _id: new ObjectId(body.cycleId) })
             if (cycle?.user_id?.toHexString() !== tokenPackage.id) {
-                res.status(401).send(UnauthorizedError)
+                res.status(403).send(ForbiddenError)
                 return
             }
 
@@ -132,7 +133,7 @@ export class WorkoutService {
                     .collection('exercises')
                     .findOne({ _id: new ObjectId(set.exerciseId) })
                 if (exercise?.user_id?.toHexString() !== tokenPackage.id) {
-                    res.status(401).send(UnauthorizedError)
+                    res.status(403).send(ForbiddenError)
                     return
                 }
             })
@@ -145,7 +146,7 @@ export class WorkoutService {
                     cycle_id: new ObjectId(body.cycleId),
                 })
             if (workoutCount > 0) {
-                res.status(401).send(UnauthorizedError)
+                res.status(403).send(ForbiddenError)
                 return
             }
 
