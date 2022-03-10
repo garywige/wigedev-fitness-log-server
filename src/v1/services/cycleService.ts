@@ -1,13 +1,14 @@
-import { Request, Response } from 'express'
-import { ObjectId, InsertOneResult, WithId, Document } from 'mongodb'
-import { Database } from '../../database/database'
 import {
     BadRequestError,
     InternalServerError,
     ServerMessage,
     UnauthorizedError,
 } from './responses'
+import { Document, InsertOneResult, ObjectId, WithId } from 'mongodb'
+import { Request, Response } from 'express'
 import { TokenPackage, TokenService } from './tokenService'
+
+import { Database } from '../../database/database'
 
 export class CycleService {
     private static _instance: CycleService
@@ -276,10 +277,27 @@ export class CycleService {
                 return
             }
 
+            // get workouts
+            const cycleId = new ObjectId(req.params.id)
+            const workouts = await db
+                .collection('workouts')
+                .find({ cycle_id: cycleId })
+
+            // delete sets in each workout
+            while (await workouts.hasNext()) {
+                const workout = await workouts.next()
+                await db
+                    .collection('sets')
+                    .deleteMany({ workout_id: workout?._id })
+            }
+
+            // delete all workouts
+            await db.collection('workouts').deleteMany({ cycle_id: cycleId })
+
             // delete the cycle
             const result = await db
                 .collection('cycles')
-                .deleteOne({ _id: new ObjectId(req.params.id) })
+                .deleteOne({ _id: cycleId })
 
             // check for results
             if (result?.deletedCount < 1) {

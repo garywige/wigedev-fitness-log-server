@@ -1,13 +1,14 @@
-import { Request, Response } from 'express'
-import { Db, InsertOneResult, ObjectId } from 'mongodb'
-import { Database } from '../../database/database'
 import {
     BadRequestError,
     InternalServerError,
     ServerMessage,
     UnauthorizedError,
 } from './responses'
+import { Db, InsertOneResult, ObjectId } from 'mongodb'
+import { Request, Response } from 'express'
 import { TokenPackage, TokenService } from './tokenService'
+
+import { Database } from '../../database/database'
 
 export class ExerciseService {
     private static _instance: ExerciseService
@@ -251,10 +252,16 @@ export class ExerciseService {
                 return
             }
 
+            // delete sets
+            const objId = new ObjectId(req.params?.id)
+            await Database.instance.db
+                .collection('sets')
+                .deleteMany({ exercise_id: objId })
+
             // delete the exercise
             const result = await Database.instance.db
                 .collection('exercises')
-                .deleteOne({ _id: new ObjectId(req.params?.id) })
+                .deleteOne({ _id: objId })
             if (result?.deletedCount < 1)
                 throw Error('Failed to delete exercise')
         } catch {
