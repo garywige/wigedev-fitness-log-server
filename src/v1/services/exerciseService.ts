@@ -254,7 +254,9 @@ export class ExerciseService {
 
             // delete sets
             const objId = new ObjectId(req.params?.id)
-            await Database.instance.db.collection('sets').deleteMany({ exercise_id: objId})
+            await Database.instance.db
+                .collection('sets')
+                .deleteMany({ exercise_id: objId })
 
             // delete the exercise
             const result = await Database.instance.db

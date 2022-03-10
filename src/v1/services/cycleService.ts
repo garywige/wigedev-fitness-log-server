@@ -279,16 +279,20 @@ export class CycleService {
 
             // get workouts
             const cycleId = new ObjectId(req.params.id)
-            const workouts = await db.collection('workouts').find({ cycle_id: cycleId })
+            const workouts = await db
+                .collection('workouts')
+                .find({ cycle_id: cycleId })
 
             // delete sets in each workout
-            while(await workouts.hasNext()){
+            while (await workouts.hasNext()) {
                 const workout = await workouts.next()
-                await db.collection('sets').deleteMany({ workout_id: workout?._id})
+                await db
+                    .collection('sets')
+                    .deleteMany({ workout_id: workout?._id })
             }
 
             // delete all workouts
-            await db.collection('workouts').deleteMany({cycle_id: cycleId})
+            await db.collection('workouts').deleteMany({ cycle_id: cycleId })
 
             // delete the cycle
             const result = await db
