@@ -76,8 +76,9 @@ describe('UserService', () => {
 
             spyOn<any>(testSubject, 'createUser').and.returnValue(true)
 
+            testSubject['_db'] = <Db>{}
             testSubject['_db'].collection = jasmine
-                .createSpy<any>()
+                .createSpy()
                 .and.returnValue({
                     findOne() {
                         return {
