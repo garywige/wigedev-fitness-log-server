@@ -76,14 +76,16 @@ describe('UserService', () => {
 
             spyOn<any>(testSubject, 'createUser').and.returnValue(true)
 
-            testSubject['_db'].collection = jasmine.createSpy<any>().and.returnValue({
-                findOne(){
-                    return {
-                        _id: 'test'
-                    }
-                },
-                insertOne(){}
-            })
+            testSubject['_db'].collection = jasmine
+                .createSpy<any>()
+                .and.returnValue({
+                    findOne() {
+                        return {
+                            _id: 'test',
+                        }
+                    },
+                    insertOne() {},
+                })
 
             // Act
             testSubject.postSignup(req, res).then(() => {

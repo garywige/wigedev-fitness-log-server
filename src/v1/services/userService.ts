@@ -20,7 +20,7 @@ export class UserService {
         'Deadlift',
         'Overhead Press',
         'Power Clean',
-        'Barbell Row'
+        'Barbell Row',
     ]
 
     private constructor() {
@@ -91,18 +91,24 @@ export class UserService {
 
         try {
             // create new user account
-            if (await this.createUser(body) === false) {
+            if ((await this.createUser(body)) === false) {
                 res.status(500).send(InternalServerError)
                 return
             }
 
             // create free cycle
-            const user = await this._db.collection('users').findOne({email: body.email})
-            await this._db.collection('cycles').insertOne({ name: 'Free', user_id: user?._id })
+            const user = await this._db
+                .collection('users')
+                .findOne({ email: body.email })
+            await this._db
+                .collection('cycles')
+                .insertOne({ name: 'Free', user_id: user?._id })
 
             // create free exercises
-            this._freeExercises.forEach(exercise => {
-                this._db.collection('exercises').insertOne({ name: exercise, user_id: user?._id })
+            this._freeExercises.forEach((exercise) => {
+                this._db
+                    .collection('exercises')
+                    .insertOne({ name: exercise, user_id: user?._id })
             })
 
             // initiate email verification depending on accountType
