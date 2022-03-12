@@ -76,7 +76,7 @@ export class ExerciseService {
         }
 
         // send output
-        setTimeout(() => res.status(200).send(output), 1000)
+        res.status(200).send(output)
     }
 
     async postExercises(req: Request, res: Response) {
