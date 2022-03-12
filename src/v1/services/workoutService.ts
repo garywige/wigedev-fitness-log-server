@@ -244,7 +244,9 @@ export class WorkoutService {
 
             // get the set count
             const workoutId = new ObjectId(workout._id)
-            output.setCount = await db.collection('sets').countDocuments({ workout_id: workoutId})
+            output.setCount = await db
+                .collection('sets')
+                .countDocuments({ workout_id: workoutId })
 
             // get the sets of this workout
             const sets = await db
