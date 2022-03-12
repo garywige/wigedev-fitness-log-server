@@ -47,34 +47,37 @@ export class CycleService {
             // get all cycles associated with this user ID
             const cycles = db
                 .collection('cycles')
-                .find(
-                    { user_id: new ObjectId(tokenPackage?.id) },
-                    { projection: { _id: 1, name: 1 } }
+                .aggregate(
+                    [
+                        { $match: { user_id: new ObjectId(tokenPackage?.id)}},
+                        { $sort: { name: 1 }},
+                        { $project: { _id: 1, name: 1}}
+                    ]
                 )
 
             // for each cycle
-            await cycles.forEach((cycle) => {
-                // get workout count
-                this.getWorkoutCount(cycle._id.toHexString()).then(
-                    async (count) => {
-                        // get date of last workout
-                        const lastWorkout = await this.getLastWorkoutDate(
-                            cycle._id.toHexString()
-                        )
+            while(await cycles.hasNext()){
+                const cycle = await cycles.next()
 
-                        // add to output array
-                        output.cycles.push({
-                            id: cycle._id.toHexString(),
-                            name: cycle?.name,
-                            modified: lastWorkout,
-                            workoutCount: count,
-                        })
-                    }
+                // get workout count
+                const count = await this.getWorkoutCount(cycle?._id?.toHexString())
+
+                // get date of last workout
+                const lastWorkout = await this.getLastWorkoutDate(
+                    cycle?._id?.toHexString()
                 )
-            })
+                
+                // add to output array
+                output.cycles.push({
+                    id: cycle?._id?.toHexString(),
+                    name: cycle?.name,
+                    modified: lastWorkout,
+                    workoutCount: count,
+                })
+            }
 
             setTimeout(() => res.status(200).send(output), 100)
-        } catch {
+        } catch (err){
             res.status(500).send(InternalServerError)
             return
         }
