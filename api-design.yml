@@ -692,6 +692,7 @@ paths:
                 required:
                   - date
                   - cycleId
+                  - setCount
                   - sets
                 properties:
                   date:
@@ -700,6 +701,9 @@ paths:
                   cycleId:
                     type: string
                     example: '1337'
+                  setCount:
+                    type: integer
+                    example: 1
                   sets:
                     type: array
                     items:

@@ -220,6 +220,7 @@ export class WorkoutService {
         const output = {
             date: req.params.date,
             cycleId: req.query.cycle,
+            setCount: 0,
             sets: [],
         }
 
@@ -241,10 +242,16 @@ export class WorkoutService {
                 date: new Date(req.params.date),
             })
 
+            // get the set count
+            const workoutId = new ObjectId(workout._id)
+            output.setCount = await db
+                .collection('sets')
+                .countDocuments({ workout_id: workoutId })
+
             // get the sets of this workout
             const sets = await db
                 .collection('sets')
-                .find({ workout_id: new ObjectId(workout._id) })
+                .find({ workout_id: workoutId })
 
             // build the sets array of the output object
             await sets
