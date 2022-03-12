@@ -76,7 +76,7 @@ export class CycleService {
                 })
             }
 
-            setTimeout(() => res.status(200).send(output), 100)
+            res.status(200).send(output)
         } catch (err){
             res.status(500).send(InternalServerError)
             return
