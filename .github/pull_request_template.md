@@ -3,8 +3,8 @@
 # Developer Checklist
 
 - [ ] NPM Audit
-- [ ] Update README
+- [ ] Unit Tests
 - [ ] Style Fix
 - [ ] Lint Fix
-- [ ] Unit Tests
+- [ ] Update README
 - [ ] Bump Version
