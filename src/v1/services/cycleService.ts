@@ -107,10 +107,9 @@ export class CycleService {
             // add cycle to collection
             result = await Database.instance.db.collection('cycles').insertOne({
                 user_id: new ObjectId(tokenPackage?.id),
-                name: body.name,
-                modified: '1970-01-01',
-                workoutCount: 0,
+                name: body.name
             })
+            
         } catch {
             res.status(500).send(InternalServerError)
             return
