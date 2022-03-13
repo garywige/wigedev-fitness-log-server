@@ -65,21 +65,26 @@ export class WorkoutService {
             // get workouts for the specified cycle
             const workouts = await db
                 .collection('workouts')
-                .find({ cycle_id: cycle._id })
+                .aggregate([
+                    { $match: { cycle_id: cycle._id } },
+                    { $sort: { date: 1 } },
+                ])
 
-            await workouts.forEach((workout) => {
+            while (await workouts.hasNext()) {
+                const workout = await workouts.next()
+
                 // get set count
-                db.collection('sets')
-                    .countDocuments({ workout_id: workout._id })
-                    .then((count) => {
-                        output.workouts.push({
-                            date: workout.date.toISOString().split('T')[0],
-                            setCount: count,
-                        })
-                    })
-            })
+                const count = await db
+                    .collection('sets')
+                    .countDocuments({ workout_id: workout?._id })
 
-            setTimeout(() => res.status(200).send(output), 100)
+                output.workouts.push({
+                    date: workout.date.toISOString().split('T')[0],
+                    setCount: count,
+                })
+            }
+
+            res.status(200).send(output)
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -251,28 +256,31 @@ export class WorkoutService {
             // get the sets of this workout
             const sets = await db
                 .collection('sets')
-                .find({ workout_id: workoutId })
+                .aggregate([
+                    { $match: { workout_id: workoutId } },
+                    { $sort: { exercise_id: 1, _id: 1 } },
+                ])
 
             // build the sets array of the output object
-            await sets
-                .forEach((set) => {
-                    db.collection('exercises')
-                        .findOne({ _id: new ObjectId(set.exercise_id) })
-                        .then((exercise) => {
-                            output.sets.push({
-                                id: set._id.toHexString(),
-                                exercise: {
-                                    id: exercise?._id?.toHexString(),
-                                    name: exercise?.name,
-                                },
-                                weight: set.weight,
-                                unit: set.unit,
-                                repsPrescribed: set.repsPrescribed,
-                                repsPerformed: set.repsPerformed,
-                            })
-                        })
+            while (await sets.hasNext()) {
+                const set = await sets.next()
+                const exercise = await db
+                    .collection('exercises')
+                    .findOne({ _id: new ObjectId(set?.exercise_id) })
+                output.sets.push({
+                    id: set._id.toHexString(),
+                    exercise: {
+                        id: exercise?._id?.toHexString(),
+                        name: exercise?.name,
+                    },
+                    weight: set.weight,
+                    unit: set.unit,
+                    repsPrescribed: set.repsPrescribed,
+                    repsPerformed: set.repsPerformed,
                 })
-                .then(() => setTimeout(() => res.status(200).send(output), 100))
+            }
+
+            res.status(200).send(output)
         } catch {
             res.status(500).send(InternalServerError)
             return

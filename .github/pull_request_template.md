@@ -7,3 +7,4 @@
 - [ ] Style Fix
 - [ ] Lint Fix
 - [ ] Unit Tests
+- [ ] Bump Version

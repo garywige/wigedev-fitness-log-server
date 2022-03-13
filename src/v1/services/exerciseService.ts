@@ -52,31 +52,32 @@ export class ExerciseService {
             // get exercises associated with this user
             const exercises = await this._db
                 .collection('exercises')
-                .find(
-                    { user_id: new ObjectId(tokenPackage?.id) },
-                    { projection: { _id: 1, name: 1 } }
-                )
+                .aggregate([
+                    { $match: { user_id: new ObjectId(tokenPackage?.id) } },
+                    { $sort: { name: 1 } },
+                    { $project: { _id: 1, name: 1 } },
+                ])
 
             // grab workout count for each workout
-            await exercises.forEach((doc) => {
-                this._db
-                    .collection('sets')
-                    .countDocuments({ exercise_id: new ObjectId(doc._id) })
-                    .then((count) => {
-                        output.exercises.push({
-                            id: doc._id?.toHexString(),
-                            name: doc.name,
-                            setCount: count,
-                        })
-                    })
-            })
+            while (await exercises.hasNext()) {
+                const exercise = await exercises.next()
+                const count = await this._db.collection('sets').countDocuments({
+                    exercise_id: new ObjectId(exercise?._id),
+                })
+
+                output.exercises.push({
+                    id: exercise?._id?.toHexString(),
+                    name: exercise?.name,
+                    setCount: count,
+                })
+            }
         } catch {
             res.status(500).send(InternalServerError)
             return
         }
 
         // send output
-        setTimeout(() => res.status(200).send(output), 1000)
+        res.status(200).send(output)
     }
 
     async postExercises(req: Request, res: Response) {
