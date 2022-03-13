@@ -53,23 +53,24 @@ export class ExerciseService {
             const exercises = await this._db
                 .collection('exercises')
                 .aggregate([
-                    { $match: { user_id: new ObjectId(tokenPackage?.id)}},
-                    { $sort: { name: 1}},
-                    { $project: { _id: 1, name: 1}}
+                    { $match: { user_id: new ObjectId(tokenPackage?.id) } },
+                    { $sort: { name: 1 } },
+                    { $project: { _id: 1, name: 1 } },
                 ])
 
             // grab workout count for each workout
-            while(await exercises.hasNext()){
+            while (await exercises.hasNext()) {
                 const exercise = await exercises.next()
-                const count = await this._db.collection('sets').countDocuments({ exercise_id: new ObjectId(exercise?._id)})
+                const count = await this._db.collection('sets').countDocuments({
+                    exercise_id: new ObjectId(exercise?._id),
+                })
 
                 output.exercises.push({
                     id: exercise?._id?.toHexString(),
                     name: exercise?.name,
-                    setCount: count
+                    setCount: count,
                 })
             }
-            
         } catch {
             res.status(500).send(InternalServerError)
             return

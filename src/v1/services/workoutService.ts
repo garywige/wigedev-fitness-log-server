@@ -66,24 +66,25 @@ export class WorkoutService {
             const workouts = await db
                 .collection('workouts')
                 .aggregate([
-                    {$match: { cycle_id: cycle._id }},
-                    {$sort: { date: 1}}
+                    { $match: { cycle_id: cycle._id } },
+                    { $sort: { date: 1 } },
                 ])
 
-            while(await workouts.hasNext()){
+            while (await workouts.hasNext()) {
                 const workout = await workouts.next()
 
                 // get set count
-                const count = await db.collection('sets').countDocuments({ workout_id: workout?._id})
+                const count = await db
+                    .collection('sets')
+                    .countDocuments({ workout_id: workout?._id })
 
                 output.workouts.push({
                     date: workout.date.toISOString().split('T')[0],
-                    setCount: count
+                    setCount: count,
                 })
             }
 
             res.status(200).send(output)
-
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -256,14 +257,16 @@ export class WorkoutService {
             const sets = await db
                 .collection('sets')
                 .aggregate([
-                    {$match: { workout_id: workoutId}},
-                    {$sort: { exercise_id: 1, _id: 1 }}
+                    { $match: { workout_id: workoutId } },
+                    { $sort: { exercise_id: 1, _id: 1 } },
                 ])
 
             // build the sets array of the output object
-            while(await sets.hasNext()){
+            while (await sets.hasNext()) {
                 const set = await sets.next()
-                const exercise = await db.collection('exercises').findOne({ _id: new ObjectId(set?.exercise_id)})
+                const exercise = await db
+                    .collection('exercises')
+                    .findOne({ _id: new ObjectId(set?.exercise_id) })
                 output.sets.push({
                     id: set._id.toHexString(),
                     exercise: {
@@ -278,7 +281,6 @@ export class WorkoutService {
             }
 
             res.status(200).send(output)
-
         } catch {
             res.status(500).send(InternalServerError)
             return

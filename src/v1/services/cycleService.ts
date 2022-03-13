@@ -47,26 +47,26 @@ export class CycleService {
             // get all cycles associated with this user ID
             const cycles = db
                 .collection('cycles')
-                .aggregate(
-                    [
-                        { $match: { user_id: new ObjectId(tokenPackage?.id)}},
-                        { $sort: { name: 1 }},
-                        { $project: { _id: 1, name: 1}}
-                    ]
-                )
+                .aggregate([
+                    { $match: { user_id: new ObjectId(tokenPackage?.id) } },
+                    { $sort: { name: 1 } },
+                    { $project: { _id: 1, name: 1 } },
+                ])
 
             // for each cycle
-            while(await cycles.hasNext()){
+            while (await cycles.hasNext()) {
                 const cycle = await cycles.next()
 
                 // get workout count
-                const count = await this.getWorkoutCount(cycle?._id?.toHexString())
+                const count = await this.getWorkoutCount(
+                    cycle?._id?.toHexString()
+                )
 
                 // get date of last workout
                 const lastWorkout = await this.getLastWorkoutDate(
                     cycle?._id?.toHexString()
                 )
-                
+
                 // add to output array
                 output.cycles.push({
                     id: cycle?._id?.toHexString(),
@@ -77,7 +77,7 @@ export class CycleService {
             }
 
             res.status(200).send(output)
-        } catch (err){
+        } catch (err) {
             res.status(500).send(InternalServerError)
             return
         }
