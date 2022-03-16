@@ -247,6 +247,53 @@ paths:
           $ref: '#/components/responses/BadRequestError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /v1/verifyemail:
+    put:
+      tags:
+        - Users
+      description: |
+        Verifies whether the provided hash is the salted hash of the email address and marks the user account as email verified if it matches.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                hash:
+                  type: string
+              required:
+                - email
+                - hash
+              example:
+                email: 'test@test.com'
+                hash: 'asdf1243asdf1234'
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  verified:
+                    type: boolean
+                required:
+                  - email
+                  - verified
+                example:
+                  email: 'test@test.com'
+                  verified: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v1/cycles:
     get:
       tags:
