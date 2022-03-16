@@ -1,9 +1,10 @@
 import { Request, Response, Router } from 'express'
+import { UserService } from '../../services/userService'
 
 const router = Router()
 
 router.put('/', async (req: Request, res: Response) => {
-    console.log('PUT /v1/verifyemail')
+    await UserService.instance.verifyEmail(req, res)
 })
 
 export default router

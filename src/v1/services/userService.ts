@@ -125,6 +125,27 @@ export class UserService {
         res.status(201).send(output)
     }
 
+    async verifyEmail(req: Request, res: Response) {
+        // validate request body
+        const body = req.body as VerifyReqBody
+        if(!body?.email || !body?.hash){
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        try {
+            // business logic
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        res.status(200).send({
+            email: 'test@test.com',
+            verified: true
+        })
+    }
+
     private async createUser(body: SignupReqBody): Promise<boolean> {
         return new Promise((resolve) =>
             bcrypt.genSalt().then((salt) => {
@@ -203,4 +224,9 @@ interface SignupReqBody {
     email: string
     password: string
     accountType: AccountType
+}
+
+interface VerifyReqBody {
+    email: string
+    hash: string
 }
