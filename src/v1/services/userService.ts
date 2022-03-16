@@ -134,14 +134,25 @@ export class UserService {
         }
 
         try {
-            // business logic
+            // generate salted hash of email address
+            const hash = await this.getEmailHash(body.email)
+
+            // compare hash with provided input
+            console.log(hash)
+            if(body.hash !== hash){
+                res.status(401).send(UnauthorizedError)
+                return
+            }
+
+            // set email verified to true in DB
+            await this._db.collection('users').updateOne({ email: body.email}, { $set: { emailVerified: true }})
         } catch {
             res.status(500).send(InternalServerError)
             return
         }
 
         res.status(200).send({
-            email: 'test@test.com',
+            email: body.email,
             verified: true
         })
     }
@@ -207,6 +218,11 @@ export class UserService {
             .collection('users')
             .findOne({ email: email }, { projection: { _id: 1 } })
         return row?._id
+    }
+
+    private async getEmailHash(email: string): Promise<string> {
+        const user = await this._db.collection('users').findOne({ email: email}, { projection: { _id: 0, salt: 1}})
+        return await bcrypt.hash(email, user?.salt)
     }
 }
 
