@@ -27,7 +27,6 @@ export class UserService {
     private _sendGrid: MailService
 
     private constructor() {
-
         try {
             this._sendGrid = new MailService()
             this._sendGrid.setApiKey(process.env['SENDGRID_API_KEY'])
@@ -56,7 +55,10 @@ export class UserService {
         let token = ''
         try {
             // compare credentials with db user and check for email verification
-            if (!(await this.compareCredentials(body)) || !(await this.emailVerified(body.email))) {
+            if (
+                !(await this.compareCredentials(body)) ||
+                !(await this.emailVerified(body.email))
+            ) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
@@ -119,7 +121,6 @@ export class UserService {
 
             // initiate email verification depending on accountType
             await this.sendVerificationEmail(body.email)
-
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -136,7 +137,7 @@ export class UserService {
     async verifyEmail(req: Request, res: Response) {
         // validate request body
         const body = req.body as VerifyReqBody
-        if(!body?.email || !body?.hash){
+        if (!body?.email || !body?.hash) {
             res.status(400).send(BadRequestError)
             return
         }
@@ -147,14 +148,17 @@ export class UserService {
             const hash = await this.getEmailHash(body.email)
 
             // compare hash with provided input
-            if(body.hash !== hash){
+            if (body.hash !== hash) {
                 isVerified = false
-            }
-            else {
+            } else {
                 // set email verified to true in DB
-                await this._db.collection('users').updateOne({ email: body.email}, { $set: { emailVerified: true }})
+                await this._db
+                    .collection('users')
+                    .updateOne(
+                        { email: body.email },
+                        { $set: { emailVerified: true } }
+                    )
             }
-
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -162,7 +166,7 @@ export class UserService {
 
         res.status(200).send({
             email: body.email,
-            verified: isVerified
+            verified: isVerified,
         })
     }
 
@@ -230,17 +234,23 @@ export class UserService {
     }
 
     private async getEmailHash(email: string): Promise<string> {
-        const user = await this._db.collection('users').findOne({ email: email}, { projection: { _id: 0, salt: 1}})
+        const user = await this._db
+            .collection('users')
+            .findOne({ email: email }, { projection: { _id: 0, salt: 1 } })
         return await bcrypt.hash(email, user?.salt)
     }
 
     private async emailVerified(email: string): Promise<boolean> {
-        const user = await this._db.collection('users').findOne({ email: email}, {projection: { _id: 0, emailVerified: 1}})
+        const user = await this._db
+            .collection('users')
+            .findOne(
+                { email: email },
+                { projection: { _id: 0, emailVerified: 1 } }
+            )
         return user?.emailVerified
     }
 
-    private async sendVerificationEmail(email: string) : Promise<void> {
-
+    private async sendVerificationEmail(email: string): Promise<void> {
         const hash = await this.getEmailHash(email)
         const url = `${process.env['FRONTEND_URL']}/verify/${email}?hash=${hash}`
 
@@ -251,7 +261,7 @@ export class UserService {
             html: `
             <p>Please click the link below to verify your email address. You will not be able to login to your WFL account until your email address is verified.</p>
             <br>
-            <a href="${url}">Verify Email</a>`
+            <a href="${url}">Verify Email</a>`,
         }
 
         await this._sendGrid.send(message)

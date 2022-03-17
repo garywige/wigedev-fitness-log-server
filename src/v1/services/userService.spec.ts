@@ -57,7 +57,6 @@ describe('UserService', () => {
                 { body: { email: 'test@test.com', bad: 'test' } }
             )
             testSubject.postSignin(req, res).then(() => {
-
                 expect(res.status).toHaveBeenCalledWith(400)
             })
         })
@@ -106,7 +105,6 @@ describe('UserService', () => {
                 { body: { email: 'test@test.com', bad: 'test' } }
             )
             testSubject.postSignup(req, res).then(() => {
-
                 expect(res.status).toHaveBeenCalledWith(400)
             })
         })
@@ -117,15 +115,16 @@ describe('UserService', () => {
             // Arrange
             const body = {
                 email: 'test@test.com',
-                hash: 'test'
+                hash: 'test',
             }
-            req = jasmine.createSpyObj('Request', {}, { body: body})
+            req = jasmine.createSpyObj('Request', {}, { body: body })
 
-            const spy = spyOn<any>(testSubject, 'getEmailHash').and.returnValue('test2')
+            const spy = spyOn<any>(testSubject, 'getEmailHash').and.returnValue(
+                'test2'
+            )
 
             // Act
             testSubject.verifyEmail(req, res).then(() => {
-
                 // Assert
                 expect(spy).toHaveBeenCalled()
             })
@@ -255,7 +254,6 @@ describe('UserService', () => {
 
             // Act
             testSubject['getId']('test').then(() => {
-
                 // Assert
                 expect(spy).toHaveBeenCalled()
             })
@@ -265,11 +263,11 @@ describe('UserService', () => {
     describe('getEmailHash()', () => {
         it('should call _db.collection()', () => {
             const spy = jasmine.createSpy<any>('collection').and.returnValue({
-                findOne(){
+                findOne() {
                     return {
-                        salt: bcrypt.genSaltSync()
+                        salt: bcrypt.genSaltSync(),
                     }
-                }
+                },
             })
             testSubject['_db'].collection = spy
 
@@ -280,13 +278,13 @@ describe('UserService', () => {
     })
 
     describe('emailVerified()', () => {
-        it('should call _db.collection()', done => {
+        it('should call _db.collection()', (done) => {
             const spy = jasmine.createSpy<any>('collection').and.returnValue({
-                findOne(){
+                findOne() {
                     return {
-                        emailVerified: true
+                        emailVerified: true,
                     }
-                }
+                },
             })
             testSubject['_db'].collection = spy
 
@@ -298,7 +296,7 @@ describe('UserService', () => {
     })
 
     describe('sendVerificationEmail()', () => {
-        it('should call _sendGrid.send()', done => {
+        it('should call _sendGrid.send()', (done) => {
             const spy = spyOn<any>(testSubject['_sendGrid'], 'send')
             testSubject['getEmailHash'] = jasmine.createSpy()
 
