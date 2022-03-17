@@ -9,6 +9,7 @@ import { Db, ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
 
 import { Database } from '../../database/database'
+import { MailService } from '@sendgrid/mail'
 import { TokenService } from './tokenService'
 
 export class UserService {
@@ -23,8 +24,12 @@ export class UserService {
         'Barbell Row',
     ]
 
+    private _sendGrid: MailService
+
     private constructor() {
         try {
+            this._sendGrid = new MailService()
+            this._sendGrid.setApiKey(process.env['SENDGRID_API_KEY'])
             this._db = Database.instance?.db
         } catch {
             console.log(
@@ -49,8 +54,11 @@ export class UserService {
 
         let token = ''
         try {
-            // compare credentials with db user
-            if (!(await this.compareCredentials(body))) {
+            // compare credentials with db user and check for email verification
+            if (
+                !(await this.compareCredentials(body)) ||
+                !(await this.emailVerified(body.email))
+            ) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
@@ -112,6 +120,7 @@ export class UserService {
             })
 
             // initiate email verification depending on accountType
+            await this.sendVerificationEmail(body.email)
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -123,6 +132,42 @@ export class UserService {
         }
 
         res.status(201).send(output)
+    }
+
+    async verifyEmail(req: Request, res: Response) {
+        // validate request body
+        const body = req.body as VerifyReqBody
+        if (!body?.email || !body?.hash) {
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        let isVerified = true
+        try {
+            // generate salted hash of email address
+            const hash = await this.getEmailHash(body.email)
+
+            // compare hash with provided input
+            if (body.hash !== hash) {
+                isVerified = false
+            } else {
+                // set email verified to true in DB
+                await this._db
+                    .collection('users')
+                    .updateOne(
+                        { email: body.email },
+                        { $set: { emailVerified: true } }
+                    )
+            }
+        } catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        res.status(200).send({
+            email: body.email,
+            verified: isVerified,
+        })
     }
 
     private async createUser(body: SignupReqBody): Promise<boolean> {
@@ -187,6 +232,40 @@ export class UserService {
             .findOne({ email: email }, { projection: { _id: 1 } })
         return row?._id
     }
+
+    private async getEmailHash(email: string): Promise<string> {
+        const user = await this._db
+            .collection('users')
+            .findOne({ email: email }, { projection: { _id: 0, salt: 1 } })
+        return await bcrypt.hash(email, user?.salt)
+    }
+
+    private async emailVerified(email: string): Promise<boolean> {
+        const user = await this._db
+            .collection('users')
+            .findOne(
+                { email: email },
+                { projection: { _id: 0, emailVerified: 1 } }
+            )
+        return user?.emailVerified
+    }
+
+    private async sendVerificationEmail(email: string): Promise<void> {
+        const hash = await this.getEmailHash(email)
+        const url = `${process.env['FRONTEND_URL']}/verify/${email}?hash=${hash}`
+
+        const message = {
+            to: email,
+            from: 'noreply@wige-dev.com',
+            subject: 'WFL: Verify Your Email Address',
+            html: `
+            <p>Please click the link below to verify your email address. You will not be able to login to your WFL account until your email address is verified.</p>
+            <br>
+            <a href="${url}">Verify Email</a>`,
+        }
+
+        await this._sendGrid.send(message)
+    }
 }
 
 export interface SigninReqBody {
@@ -203,4 +282,9 @@ interface SignupReqBody {
     email: string
     password: string
     accountType: AccountType
+}
+
+interface VerifyReqBody {
+    email: string
+    hash: string
 }
