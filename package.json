@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/garywige/wigedev-fitness-log-server#readme",
   "dependencies": {
+    "@sendgrid/mail": "^7.6.2",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
