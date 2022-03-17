@@ -267,7 +267,7 @@ describe('UserService', () => {
             const spy = jasmine.createSpy<any>('collection').and.returnValue({
                 findOne(){
                     return {
-                        salt: 'test'
+                        salt: bcrypt.genSaltSync()
                     }
                 }
             })
