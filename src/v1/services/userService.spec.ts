@@ -275,4 +275,20 @@ describe('UserService', () => {
             })
         })
     })
+
+    describe('emailVerified()', () => {
+        it('should call _db.collection()', () => {
+            const spy = jasmine.createSpy<any>('collection').and.returnValue({
+                findOne(){
+                    return {
+                        emailVerified: true
+                    }
+                }
+            })
+
+            testSubject['emailVerified']('test').then(() => {
+                expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
 })
