@@ -288,8 +288,6 @@ paths:
                 example:
                   email: 'test@test.com'
                   verified: true
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
         '400':
           $ref: '#/components/responses/BadRequestError'
         '500':
