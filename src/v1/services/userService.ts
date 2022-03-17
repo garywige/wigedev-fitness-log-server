@@ -112,6 +112,8 @@ export class UserService {
             })
 
             // initiate email verification depending on accountType
+            await this.sendVerificationEmail(body.email)
+
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -229,6 +231,10 @@ export class UserService {
     private async emailVerified(email: string): Promise<boolean> {
         const user = await this._db.collection('users').findOne({ email: email}, {projection: { _id: 0, emailVerified: 1}})
         return user?.emailVerified
+    }
+
+    private async sendVerificationEmail(email: string) : Promise<void> {
+        return 
     }
 }
 
