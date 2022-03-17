@@ -87,6 +87,7 @@ describe('UserService', () => {
                     },
                     insertOne() {},
                 })
+            testSubject['sendVerificationEmail'] = jasmine.createSpy()
 
             // Act
             testSubject.postSignup(req, res).then(() => {
