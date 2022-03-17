@@ -54,8 +54,10 @@ describe('UserService', () => {
                 {},
                 { body: { email: 'test@test.com', bad: 'test' } }
             )
-            testSubject.postSignin(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.postSignin(req, res).then(() => {
+
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
     })
 
@@ -102,8 +104,10 @@ describe('UserService', () => {
                 {},
                 { body: { email: 'test@test.com', bad: 'test' } }
             )
-            testSubject.postSignup(req, res)
-            expect(res.status).toHaveBeenCalledWith(400)
+            testSubject.postSignup(req, res).then(() => {
+
+                expect(res.status).toHaveBeenCalledWith(400)
+            })
         })
     })
 
@@ -234,10 +238,10 @@ describe('UserService', () => {
                 })
 
             // Act
-            testSubject['getRole']('test')
-
-            // Assert
-            expect(spy).toHaveBeenCalled()
+            testSubject['getRole']('test').then(() => {
+                // Assert
+                expect(spy).toHaveBeenCalled()
+            })
         })
     })
 
@@ -253,10 +257,11 @@ describe('UserService', () => {
                 })
 
             // Act
-            testSubject['getId']('test')
+            testSubject['getId']('test').then(() => {
 
-            // Assert
-            expect(spy).toHaveBeenCalled()
+                // Assert
+                expect(spy).toHaveBeenCalled()
+            })
         })
     })
 
@@ -277,7 +282,7 @@ describe('UserService', () => {
     })
 
     describe('emailVerified()', () => {
-        it('should call _db.collection()', () => {
+        it('should call _db.collection()', done => {
             const spy = jasmine.createSpy<any>('collection').and.returnValue({
                 findOne(){
                     return {
@@ -285,9 +290,11 @@ describe('UserService', () => {
                     }
                 }
             })
+            testSubject['_db'].collection = spy
 
             testSubject['emailVerified']('test').then(() => {
                 expect(spy).toHaveBeenCalled()
+                done()
             })
         })
     })
