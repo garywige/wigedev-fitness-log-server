@@ -9,6 +9,7 @@ import { Db, ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
 
 import { Database } from '../../database/database'
+import { MailService } from '@sendgrid/mail'
 import { TokenService } from './tokenService'
 
 export class UserService {
@@ -23,8 +24,13 @@ export class UserService {
         'Barbell Row',
     ]
 
+    private _sendGrid: MailService
+
     private constructor() {
+
         try {
+            this._sendGrid = new MailService()
+            this._sendGrid.setApiKey(process.env['SENDGRID_API_KEY'])
             this._db = Database.instance?.db
         } catch {
             console.log(
@@ -234,7 +240,21 @@ export class UserService {
     }
 
     private async sendVerificationEmail(email: string) : Promise<void> {
-        return 
+
+        const hash = await this.getEmailHash(email)
+        const url = `${process.env['FRONTEND_URL']}/verify/${email}?hash=${hash}`
+
+        const message = {
+            to: email,
+            from: 'noreply@wige-dev.com',
+            subject: 'WFL: Verify Your Email Address',
+            html: `
+            <p>Please click the link below to verify your email address. You will not be able to login to your WFL account until your email address is verified.</p>
+            <br>
+            <a href="${url}">Verify Email</a>`
+        }
+
+        await this._sendGrid.send(message)
     }
 }
 
