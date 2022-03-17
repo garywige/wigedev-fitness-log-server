@@ -133,19 +133,20 @@ export class UserService {
             return
         }
 
+        let isVerified = true
         try {
             // generate salted hash of email address
             const hash = await this.getEmailHash(body.email)
 
             // compare hash with provided input
-            console.log(hash)
             if(body.hash !== hash){
-                res.status(401).send(UnauthorizedError)
-                return
+                isVerified = false
+            }
+            else {
+                // set email verified to true in DB
+                await this._db.collection('users').updateOne({ email: body.email}, { $set: { emailVerified: true }})
             }
 
-            // set email verified to true in DB
-            await this._db.collection('users').updateOne({ email: body.email}, { $set: { emailVerified: true }})
         } catch {
             res.status(500).send(InternalServerError)
             return
@@ -153,7 +154,7 @@ export class UserService {
 
         res.status(200).send({
             email: body.email,
-            verified: true
+            verified: isVerified
         })
     }
 
