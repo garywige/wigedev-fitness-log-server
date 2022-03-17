@@ -107,6 +107,26 @@ describe('UserService', () => {
         })
     })
 
+    describe('verifyEmail()', () => {
+        it('should call getEmailHash when provided a valid request body', () => {
+            // Arrange
+            const body = {
+                email: 'test@test.com',
+                hash: 'test'
+            }
+            req = jasmine.createSpyObj('Request', {}, { body: body})
+
+            const spy = spyOn<any>(testSubject, 'getEmailHash').and.returnValue('test2')
+
+            // Act
+            testSubject.verifyEmail(req, res).then(() => {
+
+                // Assert
+                expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
+
     describe('createUser()', () => {
         beforeEach(() => {
             testSubject['_db'] = <Db>{}
