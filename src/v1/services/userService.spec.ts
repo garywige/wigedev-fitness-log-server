@@ -259,4 +259,20 @@ describe('UserService', () => {
             expect(spy).toHaveBeenCalled()
         })
     })
+
+    describe('getEmailHash()', () => {
+        it('should call _db.collection()', () => {
+            const spy = jasmine.createSpy<any>('collection').and.returnValue({
+                findOne(){
+                    return {
+                        salt: 'test'
+                    }
+                }
+            })
+
+            testSubject['getEmailHash']('test').then(() => {
+                expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
 })
