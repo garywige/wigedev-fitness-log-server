@@ -49,8 +49,8 @@ export class UserService {
 
         let token = ''
         try {
-            // compare credentials with db user
-            if (!(await this.compareCredentials(body))) {
+            // compare credentials with db user and check for email verification
+            if (!(await this.compareCredentials(body)) || !(await this.emailVerified(body.email))) {
                 res.status(401).send(UnauthorizedError)
                 return
             }
@@ -224,6 +224,11 @@ export class UserService {
     private async getEmailHash(email: string): Promise<string> {
         const user = await this._db.collection('users').findOne({ email: email}, { projection: { _id: 0, salt: 1}})
         return await bcrypt.hash(email, user?.salt)
+    }
+
+    private async emailVerified(email: string): Promise<boolean> {
+        const user = await this._db.collection('users').findOne({ email: email}, {projection: { _id: 0, emailVerified: 1}})
+        return user?.emailVerified
     }
 }
 
