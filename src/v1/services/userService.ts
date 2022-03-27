@@ -170,6 +170,10 @@ export class UserService {
         })
     }
 
+    async upgrade(req: Request, res: Response){
+        // TODO
+    }
+
     private async createUser(body: SignupReqBody): Promise<boolean> {
         return new Promise((resolve) =>
             bcrypt.genSalt().then((salt) => {
