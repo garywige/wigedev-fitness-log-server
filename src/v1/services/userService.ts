@@ -7,14 +7,15 @@ import {
 } from './responses'
 import { Db, ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
+import { TokenPackage, TokenService } from './tokenService'
 
 import { Database } from '../../database/database'
 import { MailService } from '@sendgrid/mail'
-import { TokenService } from './tokenService'
 
 export class UserService {
     private static _instance: UserService
     private _db: Db
+    private _tokenService: TokenService
     private _freeExercises = [
         'Squat',
         'Bench Press',
@@ -28,6 +29,7 @@ export class UserService {
 
     private constructor() {
         try {
+            this._tokenService = TokenService.instance
             this._sendGrid = new MailService()
             this._sendGrid.setApiKey(process.env['SENDGRID_API_KEY'])
             this._db = Database.instance?.db
@@ -171,7 +173,38 @@ export class UserService {
     }
 
     async upgrade(req: Request, res: Response){
-        // TODO
+        // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
+
+        // Validate request body
+        const body = req?.body as UpgradeReqBody
+        if(!body?.type || !body?.card || !body?.name || !body?.address) {
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        const output = {
+            email: tokenPackage?.email,
+            paidUntil: new Date('1970-01-01')
+        }
+        try {
+            // business logic
+        }
+        catch {
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        // success
+        res.status(200).send(output)
     }
 
     private async createUser(body: SignupReqBody): Promise<boolean> {
@@ -291,4 +324,21 @@ interface SignupReqBody {
 interface VerifyReqBody {
     email: string
     hash: string
+}
+
+interface UpgradeReqBody {
+    type: string
+    card: string
+    name: {
+        first: string,
+        last: string
+    }
+    address: {
+        line1: string
+        line2?: string
+        city: string
+        state: string
+        zip: string
+        country: string
+    }
 }
