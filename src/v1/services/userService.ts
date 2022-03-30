@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt'
+import * as https from 'https'
 
 import {
     BadRequestError,
@@ -196,15 +197,119 @@ export class UserService {
             paidUntil: new Date('1970-01-01')
         }
         try {
-            // business logic
+            const headers = {
+                'Square-Version': '2022-03-16',
+                'Authorization': `Bearer ${process.env['SQUARE_ACCESS_TOKEN']}`,
+                'Content-Type': 'application/json'
+            }
+                
+            // Create Square customer
+            const customerReq = https.request({
+                host: process.env['SQUARE_API_URL'],
+                path: '/v2/customers',
+                method: 'POST',
+                headers: headers
+            }, customerRes => {
+
+                // set customer response
+                const chunks = []
+                customerRes.setEncoding('utf8')
+                customerRes.on('data', data => chunks.push(data))
+                customerRes.on('end', () => {
+                    const customer = JSON.parse(chunks.join())
+
+                    // Create Card on file
+                    const cardReq = https.request({
+                        host: process.env['SQUARE_API_URL'],
+                        path: '/v2/cards',
+                        method: 'POST',
+                        headers: headers
+                    }, cardRes => {
+
+                        // set card response
+                        chunks.length = 0
+                        cardRes.setEncoding('utf8')
+                        cardRes.on('data', data => chunks.push(data))
+                        cardRes.on('end', () => {
+                            const card = JSON.parse(chunks.join())
+
+                            // Create Subscription
+                            const subscriptionReq = https.request({
+                                host: process.env['SQUARE_API_URL'],
+                                path: '/v2/subscriptions',
+                                method: 'POST',
+                                headers: headers
+                            }, subscriptionRes => {
+
+                                // set subscription response
+                                chunks.length = 0
+                                subscriptionRes.setEncoding('utf8')
+                                subscriptionRes.on('data', data => chunks.push(data))
+                                subscriptionRes.on('end', () => {
+                                    const subscription = JSON.parse(chunks.join())
+                                    
+                                    if(subscription?.subscription?.status !== 'ACTIVE'){
+                                        throw new Error('Subscription status is not active.')
+                                    }
+
+                                    // upgrade account to pro
+
+                                    // set paidThrough appropriately
+
+                                    // success
+                                    res.status(200).send(output)
+                                })
+                            })
+
+                            subscriptionReq.write(JSON.stringify({
+                                idempotency_key: new Date(),
+                                location_id: process.env['SQUARE_LOCATION_ID'],
+                                plan_id: body.type === 'month' 
+                                    ? process.env['SQUARE_PLAN_MONTH'] 
+                                    : process.env['SQUARE_PLAN_YEAR'],
+                                customer_id: customer?.customer?.id,
+                                card_id: card?.card?.id
+                            }))
+
+                            subscriptionReq.end()
+                        })
+                    })
+
+                    cardReq.write(JSON.stringify({
+                        idempotency_key: new Date().toISOString(),
+                        source_id: body.card,
+                        card: {
+                            billing_address: {
+                                address_line_1: body.address.line1,
+                                address_line_2: body.address.line2,
+                                locality: body.address.city,
+                                administrative_district_level_1: body.address.state,
+                                postal_code: body.address.zip,
+                                country: body.address.country
+                            },
+                            cardholder_name: `${body.name.first} ${body.name.last}`,
+                            customer_id: customer?.customer?.id
+                        }
+                    }))
+
+                    cardReq.end()
+                })
+            })
+
+            customerReq.write(JSON.stringify({
+                family_name: body.name?.last,
+                given_name: body.name?.first,
+                idempotency_key: await this.getEmailHash(tokenPackage.email),
+                email_address: tokenPackage.email
+            }))
+
+            customerReq.end()
+
         }
         catch {
             res.status(500).send(InternalServerError)
             return
         }
-
-        // success
-        res.status(200).send(output)
     }
 
     private async createUser(body: SignupReqBody): Promise<boolean> {
