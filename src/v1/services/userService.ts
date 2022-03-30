@@ -197,122 +197,59 @@ export class UserService {
             paidThrough: new Date()
         }
         try {
-            const headers = {
-                'Square-Version': '2022-03-16',
-                'Authorization': `Bearer ${process.env['SQUARE_ACCESS_TOKEN']}`,
-                'Content-Type': 'application/json'
-            }
-                
-            // Create Square customer
-            const customerReq = https.request({
-                host: process.env['SQUARE_API_URL'],
-                path: '/v2/customers',
-                method: 'POST',
-                headers: headers
-            }, customerRes => {
 
-                // set customer response
-                const chunks = []
-                customerRes.setEncoding('utf8')
-                customerRes.on('data', data => chunks.push(data))
-                customerRes.on('end', () => {
-                    const customer = JSON.parse(chunks.join())
-
-                    // Create Card on file
-                    const cardReq = https.request({
-                        host: process.env['SQUARE_API_URL'],
-                        path: '/v2/cards',
-                        method: 'POST',
-                        headers: headers
-                    }, cardRes => {
-
-                        // set card response
-                        chunks.length = 0
-                        cardRes.setEncoding('utf8')
-                        cardRes.on('data', data => chunks.push(data))
-                        cardRes.on('end', () => {
-                            const card = JSON.parse(chunks.join())
-
-                            // Create Subscription
-                            const subscriptionReq = https.request({
-                                host: process.env['SQUARE_API_URL'],
-                                path: '/v2/subscriptions',
-                                method: 'POST',
-                                headers: headers
-                            }, subscriptionRes => {
-
-                                // set subscription response
-                                chunks.length = 0
-                                subscriptionRes.setEncoding('utf8')
-                                subscriptionRes.on('data', data => chunks.push(data))
-                                subscriptionRes.on('end', () => {
-                                    const subscription = JSON.parse(chunks.join())
-                                    
-                                    if(subscription?.subscription?.status !== 'ACTIVE'){
-                                        throw new Error('Subscription status is not active.')
-                                    }
-
-                                    // upgrade account to pro
-                                    // set paidThrough appropriately
-                                    if(body.type === 'month'){
-                                        output.paidThrough.setMonth(output.paidThrough.getMonth() + 1)
-                                    } 
-                                    else {
-                                        output.paidThrough.setFullYear(output.paidThrough.getFullYear() + 1)
-                                    }
-                                    this._db.collection('users').updateOne({ email: tokenPackage.email}, 
-                                        {$set: { role: 'pro', paidThrough: output.paidThrough}})
-
-
-                                    // success
-                                    res.status(200).send(output)
-                                })
-                            })
-
-                            subscriptionReq.write(JSON.stringify({
-                                idempotency_key: new Date(),
-                                location_id: process.env['SQUARE_LOCATION_ID'],
-                                plan_id: body.type === 'month' 
-                                    ? process.env['SQUARE_PLAN_MONTH'] 
-                                    : process.env['SQUARE_PLAN_YEAR'],
-                                customer_id: customer?.customer?.id,
-                                card_id: card?.card?.id
-                            }))
-
-                            subscriptionReq.end()
-                        })
-                    })
-
-                    cardReq.write(JSON.stringify({
-                        idempotency_key: new Date().toISOString(),
-                        source_id: body.card,
-                        card: {
-                            billing_address: {
-                                address_line_1: body.address.line1,
-                                address_line_2: body.address.line2,
-                                locality: body.address.city,
-                                administrative_district_level_1: body.address.state,
-                                postal_code: body.address.zip,
-                                country: body.address.country
-                            },
-                            cardholder_name: `${body.name.first} ${body.name.last}`,
-                            customer_id: customer?.customer?.id
-                        }
-                    }))
-
-                    cardReq.end()
-                })
-            })
-
-            customerReq.write(JSON.stringify({
+            this.postSquare('/v2/customers', {
                 family_name: body.name?.last,
                 given_name: body.name?.first,
                 idempotency_key: await this.getEmailHash(tokenPackage.email),
                 email_address: tokenPackage.email
-            }))
+            }, customerData => {
+                this.postSquare('/v2/cards', {
+                    idempotency_key: new Date().toISOString(),
+                    source_id: body.card,
+                    card: {
+                        billing_address: {
+                            address_line_1: body.address.line1,
+                            address_line_2: body.address.line2,
+                            locality: body.address.city,
+                            administrative_district_level_1: body.address.state,
+                            postal_code: body.address.zip,
+                            country: body.address.country
+                        },
+                        cardholder_name: `${body.name.first} ${body.name.last}`,
+                        customer_id: customerData?.customer?.id
+                    }
+                }, cardData => {
+                    this.postSquare('/v2/subscriptions', {
+                        idempotency_key: tokenPackage.email,
+                        location_id: process.env['SQUARE_LOCATION_ID'],
+                        plan_id: body.type === 'month' 
+                            ? process.env['SQUARE_PLAN_MONTH'] 
+                            : process.env['SQUARE_PLAN_YEAR'],
+                        customer_id: customerData?.customer?.id,
+                        card_id: cardData?.card?.id
+                    }, subscriptionData => {
+                        if(subscriptionData?.subscription?.status !== 'ACTIVE'){
+                            throw new Error('Subscription status is not active.')
+                        }
 
-            customerReq.end()
+                        // upgrade account to pro
+                        // set paidThrough appropriately
+                        if(body.type === 'month'){
+                            output.paidThrough.setMonth(output.paidThrough.getMonth() + 1)
+                        } 
+                        else {
+                            output.paidThrough.setFullYear(output.paidThrough.getFullYear() + 1)
+                        }
+                        this._db.collection('users').updateOne({ email: tokenPackage.email}, 
+                            {$set: { role: 'pro', paidThrough: output.paidThrough}})
 
+
+                        // success
+                        res.status(200).send(output)
+                    })
+                })
+            })
         }
         catch {
             res.status(500).send(InternalServerError)
@@ -415,6 +352,39 @@ export class UserService {
         }
 
         await this._sendGrid.send(message)
+    }
+
+    private postSquare(apiPath: string, reqBody: any, onEnd: (data: any) => void) {
+        const req = https.request({
+            host: process.env['SQUARE_API_URL'],
+            path: apiPath,
+            method: 'POST',
+            headers: {
+                'Square-Version': '2022-03-16',
+                'Authorization': `Bearer ${process.env['SQUARE_ACCESS_TOKEN']}`,
+                'Content-Type': 'application/json'
+            }
+        }, res => {
+
+            // set subscription response
+            const chunks = []
+            res.setEncoding('utf8')
+            res.on('data', data => chunks.push(data))
+            res.on('end', () => {
+                const data = JSON.parse(chunks.join())
+                
+                try {
+                    onEnd(data)
+                }
+                catch (err) {
+                    console.log(err)
+                }
+            })
+        })
+
+        req.write(JSON.stringify(reqBody))
+
+        req.end()
     }
 }
 
