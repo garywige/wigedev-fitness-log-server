@@ -194,7 +194,7 @@ export class UserService {
 
         const output = {
             email: tokenPackage?.email,
-            paidUntil: new Date('1970-01-01')
+            paidThrough: new Date()
         }
         try {
             const headers = {
@@ -253,8 +253,16 @@ export class UserService {
                                     }
 
                                     // upgrade account to pro
-
                                     // set paidThrough appropriately
+                                    if(body.type === 'month'){
+                                        output.paidThrough.setMonth(output.paidThrough.getMonth() + 1)
+                                    } 
+                                    else {
+                                        output.paidThrough.setFullYear(output.paidThrough.getFullYear() + 1)
+                                    }
+                                    this._db.collection('users').updateOne({ email: tokenPackage.email}, 
+                                        {$set: { role: 'pro', paidThrough: output.paidThrough}})
+
 
                                     // success
                                     res.status(200).send(output)
