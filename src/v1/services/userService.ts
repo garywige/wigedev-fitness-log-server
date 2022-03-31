@@ -198,13 +198,16 @@ export class UserService {
         }
         try {
 
-            this.postSquare('/v2/customers', {
+            let cardsResult = false, subscriptionResult = false      
+
+            const customerResult = this.postSquare('/v2/customers', {
                 family_name: body.name?.last,
                 given_name: body.name?.first,
                 idempotency_key: await this.getEmailHash(tokenPackage.email),
                 email_address: tokenPackage.email
             }, customerData => {
-                this.postSquare('/v2/cards', {
+
+                cardsResult = this.postSquare('/v2/cards', {
                     idempotency_key: new Date().toISOString(),
                     source_id: body.card,
                     card: {
@@ -220,7 +223,8 @@ export class UserService {
                         customer_id: customerData?.customer?.id
                     }
                 }, cardData => {
-                    this.postSquare('/v2/subscriptions', {
+
+                    subscriptionResult = this.postSquare('/v2/subscriptions', {
                         idempotency_key: tokenPackage.email,
                         location_id: process.env['SQUARE_LOCATION_ID'],
                         plan_id: body.type === 'month' 
@@ -228,10 +232,7 @@ export class UserService {
                             : process.env['SQUARE_PLAN_YEAR'],
                         customer_id: customerData?.customer?.id,
                         card_id: cardData?.card?.id
-                    }, subscriptionData => {
-                        if(subscriptionData?.subscription?.status !== 'ACTIVE'){
-                            throw new Error('Subscription status is not active.')
-                        }
+                    }, () => {
 
                         // upgrade account to pro
                         // set paidThrough appropriately
@@ -244,12 +245,15 @@ export class UserService {
                         this._db.collection('users').updateOne({ email: tokenPackage.email}, 
                             {$set: { role: 'pro', paidThrough: output.paidThrough}})
 
-
                         // success
                         res.status(200).send(output)
                     })
                 })
             })
+
+            if(!customerResult || !cardsResult || subscriptionResult){
+                throw new Error('There was an error creating the subscription.')
+            }
         }
         catch {
             res.status(500).send(InternalServerError)
@@ -354,7 +358,10 @@ export class UserService {
         await this._sendGrid.send(message)
     }
 
-    private postSquare(apiPath: string, reqBody: any, onEnd: (data: any) => void) {
+    private postSquare(apiPath: string, reqBody: any, onEnd: (data: any) => void) : boolean {
+
+        let result = true
+
         const req = https.request({
             host: process.env['SQUARE_API_URL'],
             path: apiPath,
@@ -366,18 +373,19 @@ export class UserService {
             }
         }, res => {
 
-            // set subscription response
+            // set response
             const chunks = []
             res.setEncoding('utf8')
             res.on('data', data => chunks.push(data))
             res.on('end', () => {
                 const data = JSON.parse(chunks.join())
-                
-                try {
-                    onEnd(data)
+
+                if(data?.errors){
+                    console.log(JSON.stringify(data.errors))
+                    result = false
                 }
-                catch (err) {
-                    console.log(err)
+                else {
+                    onEnd(data)
                 }
             })
         })
@@ -385,6 +393,8 @@ export class UserService {
         req.write(JSON.stringify(reqBody))
 
         req.end()
+
+        return result
     }
 }
 
