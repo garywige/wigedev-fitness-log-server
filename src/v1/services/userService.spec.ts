@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import {Request, Response } from 'express'
 
 import { Db, ObjectId } from 'mongodb'
 import { UserService, AccountType, SigninReqBody } from './userService'
@@ -127,6 +127,58 @@ describe('UserService', () => {
             testSubject.verifyEmail(req, res).then(() => {
                 // Assert
                 expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
+
+    describe('upgrade()', () => {
+        it('should call postSquare when provided valid input', done => {
+            // Arrange
+            spyOn<any>(
+                testSubject['_tokenService'],
+                'extractTokenPackage'
+            ).and.returnValue(
+                new Promise(resolve => {
+                    resolve({
+                        id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+                        email: 'test@test.com',
+                        role: 'free',
+                    })
+                })
+            )
+
+            req = jasmine.createSpyObj('Request', {}, {
+                body: {
+                    type: 'month',
+                    card: 'test',
+                    name: {
+                        first: 'test',
+                        last: 'test'
+                    },
+                    address: {
+                        line1: 'test',
+                        line2: 'test',
+                        city: 'test',
+                        state: 'CA',
+                        zip: '12345',
+                        country: 'US'
+                    }
+                },
+                headers: {
+                    authorization: 'test'
+                }
+            })
+
+            const spy = spyOn<any>(testSubject, 'postSquare')
+
+            testSubject['getEmailHash'] = jasmine.createSpy().and.returnValue('test')
+
+            // Act
+            testSubject.upgrade(req, res).then(() => {
+                
+                // Assert
+                expect(spy).toHaveBeenCalled()
+                done()
             })
         })
     })

@@ -226,10 +226,10 @@ export class UserService {
 
                     subscriptionResult = this.postSquare('/v2/subscriptions', {
                         idempotency_key: tokenPackage.email,
-                        location_id: process.env['SQUARE_LOCATION_ID'],
+                        location_id: process.env['SQUARE_LOCATION_ID'] ?? '',
                         plan_id: body.type === 'month' 
-                            ? process.env['SQUARE_PLAN_MONTH'] 
-                            : process.env['SQUARE_PLAN_YEAR'],
+                            ? process.env['SQUARE_PLAN_MONTH'] ?? ''
+                            : process.env['SQUARE_PLAN_YEAR'] ?? '',
                         customer_id: customerData?.customer?.id,
                         card_id: cardData?.card?.id
                     }, () => {
