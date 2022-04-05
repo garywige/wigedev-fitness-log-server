@@ -203,7 +203,7 @@ export class UserService {
             const customerResult = this.postSquare('/v2/customers', {
                 family_name: body.name?.last,
                 given_name: body.name?.first,
-                idempotency_key: await this.getEmailHash(tokenPackage.email),
+                idempotency_key: new Date().toISOString(),
                 email_address: tokenPackage.email
             }, customerData => {
 
