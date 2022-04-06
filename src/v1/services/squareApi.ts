@@ -21,6 +21,11 @@ export class SquareApi {
                     resolve(data)
                 })
             })
+
+            if(body){
+                req.write(JSON.stringify(body))
+                req.end()
+            }
         })
     }
 }
