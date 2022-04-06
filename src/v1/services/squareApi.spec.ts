@@ -26,4 +26,13 @@ describe('SquareApi', () => {
             })
         })
     })
+
+    describe('createCustomer()', () => {
+        it('should call request()', () => {
+            const spy = spyOn<any>(service, 'request')
+            service['createCustomer']('test', 'test', 'test@test.com').then(() => {
+                expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
 })

@@ -28,4 +28,17 @@ export class SquareApi {
             }
         })
     }
+
+    public async createCustomer(firstName: string, lastName: string, email: string): Promise<any> {
+        return this.request(process.env['SQUARE_API_URL'], '/v2/customers', 'POST', {
+            'Square-Version': '2022-03-16',
+            'Authorization': `Bearer ${process.env['SQUARE_ACCESS_TOKEN']}`,
+            'Content-Type': 'application/json'
+        },{
+            family_name: lastName,
+            given_name: firstName,
+            idempotency_key: new Date().toISOString(),
+            email_address: email
+        })
+    }
 }
