@@ -1,4 +1,7 @@
 import * as http from 'http'
+import { IntegerType } from 'mongodb'
+import { checkServerIdentity } from 'tls'
+import { Z_PARTIAL_FLUSH } from 'zlib'
 
 export class SquareApi {
 
@@ -44,6 +47,35 @@ export class SquareApi {
             email_address: email
         })
     }
+
+    public async createCard(cardToken: string, line1: string, line2: string, city: string,
+        state: string, zip: string, country: string, billingName: string, customerId: string): Promise<CreateCardOutput> {
+        return await this.request(process.env['SQUARE_API_URL'],
+        '/v2/cards', 'POST',
+        this.headers, {
+            idempotency_key: new Date().toISOString(),
+            source_id: cardToken,
+            card: {
+                billing_address: {
+                    address_line_1: line1,
+                    address_line_2: line2,
+                    locality: city,
+                    administrative_district_level_1: state,
+                    postal_code: zip,
+                    country: country
+                },
+                cardholder_name: billingName,
+                customer_id: customerId
+            }
+        })
+    }
+}
+
+export interface SquareError {
+    category: string,
+    code: string,
+    detail: string,
+    field: string
 }
 
 export interface CreateCustomerOutput {
@@ -63,10 +95,26 @@ export interface CreateCustomerOutput {
         family_name: string,
         given_name: string
     },
-    errors: {
-        category: string,
-        code: string,
-        detail: string,
-        field: string
-    }
+    errors: SquareError[]
+}
+
+export interface CreateCardOutput {
+    card: {
+        id: string,
+        billing_address: any,
+        bin: string,
+        card_brand: string,
+        card_type: string,
+        cardholder_name: string,
+        customer_id: string,
+        enabled: boolean,
+        exp_month: number,
+        exp_year: number,
+        fingerprint: string,
+        last_4: string,
+        merchant_id: string,
+        prepaid_type: string,
+        version: number
+    },
+    errors: SquareError[]
 }

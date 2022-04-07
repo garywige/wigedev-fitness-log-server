@@ -35,4 +35,13 @@ describe('SquareApi', () => {
             })
         })
     })
+
+    describe('createCard()', () => {
+        it('should call request()', () => {
+            const spy = spyOn<any>(service, 'request')
+            service['createCard']('test', 'test', '', 'test', 'test', 'test', 'test', 'test', 'test').then(() => {
+                expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
 })
