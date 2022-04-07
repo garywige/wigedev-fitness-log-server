@@ -12,6 +12,7 @@ import { TokenPackage, TokenService } from './tokenService'
 
 import { Database } from '../../database/database'
 import { MailService } from '@sendgrid/mail'
+import { SquareApi } from './squareApi'
 
 export class UserService {
     private static _instance: UserService
@@ -27,9 +28,11 @@ export class UserService {
     ]
 
     private _sendGrid: MailService
+    private _squareApi: SquareApi
 
     private constructor() {
         try {
+            this._squareApi = new SquareApi()
             this._tokenService = TokenService.instance
             this._sendGrid = new MailService()
             this._sendGrid.setApiKey(process.env['SENDGRID_API_KEY'])
@@ -198,62 +201,19 @@ export class UserService {
         }
         try {
 
-            let cardsResult = false, subscriptionResult = false      
+            const customerOutput = await this._squareApi.createCustomer(body.name?.first, body.name?.last, tokenPackage?.email)
+            this.validateSquareOutput(customerOutput, 'createCustomer() failed...')
 
-            const customerResult = this.postSquare('/v2/customers', {
-                family_name: body.name?.last,
-                given_name: body.name?.first,
-                idempotency_key: new Date().toISOString(),
-                email_address: tokenPackage.email
-            }, customerData => {
+            const cardOutput = await this._squareApi.createCard(body.card, body.address.line1, body.address.line2 ?? '', 
+                body.address.city, body.address.state, body.address.zip, body.address.country, 
+                `${body.name.first} ${body.name.last}`, customerOutput.customer?.id)
+            this.validateSquareOutput(cardOutput, 'createCard() failed...')
 
-                cardsResult = this.postSquare('/v2/cards', {
-                    idempotency_key: new Date().toISOString(),
-                    source_id: body.card,
-                    card: {
-                        billing_address: {
-                            address_line_1: body.address.line1,
-                            address_line_2: body.address.line2,
-                            locality: body.address.city,
-                            administrative_district_level_1: body.address.state,
-                            postal_code: body.address.zip,
-                            country: body.address.country
-                        },
-                        cardholder_name: `${body.name.first} ${body.name.last}`,
-                        customer_id: customerData?.customer?.id
-                    }
-                }, cardData => {
+            const subscriptionOutput = await this._squareApi.createSubscription(body.type, customerOutput.customer?.id, cardOutput.card?.id)
+            this.validateSquareOutput(subscriptionOutput, 'createSubscription() failed...')
 
-                    subscriptionResult = this.postSquare('/v2/subscriptions', {
-                        idempotency_key: tokenPackage.email,
-                        location_id: process.env['SQUARE_LOCATION_ID'] ?? '',
-                        plan_id: body.type === 'month' 
-                            ? process.env['SQUARE_PLAN_MONTH'] ?? ''
-                            : process.env['SQUARE_PLAN_YEAR'] ?? '',
-                        customer_id: customerData?.customer?.id,
-                        card_id: cardData?.card?.id
-                    }, () => {
+            // TODO: set paidThrough and status 200
 
-                        // upgrade account to pro
-                        // set paidThrough appropriately
-                        if(body.type === 'month'){
-                            output.paidThrough.setMonth(output.paidThrough.getMonth() + 1)
-                        } 
-                        else {
-                            output.paidThrough.setFullYear(output.paidThrough.getFullYear() + 1)
-                        }
-                        this._db.collection('users').updateOne({ email: tokenPackage.email}, 
-                            {$set: { role: 'pro', paidThrough: output.paidThrough}})
-
-                        // success
-                        res.status(200).send(output)
-                    })
-                })
-            })
-
-            if(!customerResult || !cardsResult || subscriptionResult){
-                throw new Error('There was an error creating the subscription.')
-            }
         }
         catch {
             res.status(500).send(InternalServerError)
@@ -395,6 +355,13 @@ export class UserService {
         req.end()
 
         return result
+    }
+
+    private validateSquareOutput(output: any, message: string){
+        if(output?.errors){
+            console.log(JSON.stringify(output))
+            throw new Error(message)
+        }
     }
 }
 
