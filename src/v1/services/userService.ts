@@ -212,13 +212,18 @@ export class UserService {
             const subscriptionOutput = await this._squareApi.createSubscription(body.type, customerOutput.customer?.id, cardOutput.card?.id)
             this.validateSquareOutput(subscriptionOutput, 'createSubscription() failed...')
 
-            // TODO: set paidThrough and status 200
-
+            output.paidThrough = body.type === 'month' ? 
+            new Date(new Date().setMonth(new Date().getMonth() + 1)) :
+            new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+            await this._db.collection('users').updateOne({ _id: tokenPackage.id }, 
+                { $set: { paidThrough: output.paidThrough, role: 'pro' }})
         }
         catch {
             res.status(500).send(InternalServerError)
             return
         }
+
+        res.status(200).send(output)
     }
 
     private async createUser(body: SignupReqBody): Promise<boolean> {
