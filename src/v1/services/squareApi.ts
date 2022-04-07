@@ -69,6 +69,20 @@ export class SquareApi {
             }
         })
     }
+
+    public async createSubscription(type: string, customerId: string, cardId: string): Promise<CreateSubscriptionOutput> {
+        return await this.request(process.env['SQUARE_API_URL'],
+        '/v2/subscriptions', 'POST',
+        this.headers, {
+            idempotency_key: new Date().toISOString(),
+            location_id: process.env['SQUARE_LOCATION_ID'] ?? '',
+            plan_id: type === 'month' ?
+                process.env['SQUARE_PLAN_MONTH'] ?? '' :
+                process.env['SQUARE_PLAN_YEAR'] ?? '',
+            customer_id: customerId,
+            card_id: cardId
+        })
+    }
 }
 
 export interface SquareError {
@@ -117,6 +131,23 @@ export interface CreateCardOutput {
         merchant_id: string,
         prepaid_type: string,
         version: number
+    },
+    errors: SquareError[]
+}
+
+export interface CreateSubscriptionOutput {
+    subscription: {
+        id: string,
+        canceled_date: string,
+        card_id: string,
+        charged_through_date: string,
+        created_at: string,
+        customer_id: string,
+        invoice_ids: [],
+        location_id: string,
+        plan_id: string,
+        start_date: string,
+        status: string
     },
     errors: SquareError[]
 }
