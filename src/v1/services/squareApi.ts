@@ -78,17 +78,19 @@ export interface SquareError {
     field: string
 }
 
+export interface SquareAddress {
+    address_line_1: string,
+    address_line_2: string,
+    administrative_district_level_1: string,
+    country: string,
+    locality: string,
+    postal_code: string
+}
+
 export interface CreateCustomerOutput {
     customer: {
         id: string,
-        address: {
-            address_line_1: string,
-            address_line_2: string,
-            administrative_district_level_1: string,
-            country: string,
-            locality: string,
-            postal_code: string
-        },
+        address: SquareAddress,
         created_at: string,
         creation_source: string,
         email_address: string,
@@ -101,7 +103,7 @@ export interface CreateCustomerOutput {
 export interface CreateCardOutput {
     card: {
         id: string,
-        billing_address: any,
+        billing_address: SquareAddress,
         bin: string,
         card_brand: string,
         card_type: string,
