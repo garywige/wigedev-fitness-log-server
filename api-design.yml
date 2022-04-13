@@ -292,6 +292,90 @@ paths:
           $ref: '#/components/responses/BadRequestError'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /v1/upgrade:
+    post:
+      tags:
+        - Users
+      description: Submit information required to make a payment, create subscription, and upgrade to WFL Pro
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: year
+                card:
+                  type: string
+                  example: cnon:blahblahblah
+                name:
+                  type: object
+                  properties:
+                    first:
+                      type: string
+                      example: John
+                    last:
+                      type: string
+                      example: Doe
+                  required:
+                    - first
+                    - last
+                address:
+                  type: object
+                  properties:
+                    line1:
+                      type: string
+                      example: 123 Main St.
+                    line2:
+                      type: string
+                      example: Unit 1
+                    city:
+                      type: string
+                      example: Los Angeles
+                    state:
+                      type: string
+                      example: "CA"
+                    zip:
+                      type: string
+                      example: 90210
+                    country:
+                      type: string
+                      example: US
+                  required:
+                    - line1
+                    - city
+                    - state
+                    - zip
+                    - country
+              required:
+                - type
+                - card
+                - name
+                - address
+      responses:
+        '200': # Response
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    example: test@test.com
+                  paidThrough:
+                    type: string
+                    example: 2023-03-26
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /v1/cycles:
     get:
       tags:

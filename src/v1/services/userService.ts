@@ -7,14 +7,16 @@ import {
 } from './responses'
 import { Db, ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
+import { SquareApi, SquareOutput } from './squareApi'
+import { TokenPackage, TokenService } from './tokenService'
 
 import { Database } from '../../database/database'
 import { MailService } from '@sendgrid/mail'
-import { TokenService } from './tokenService'
 
 export class UserService {
     private static _instance: UserService
     private _db: Db
+    private _tokenService: TokenService
     private _freeExercises = [
         'Squat',
         'Bench Press',
@@ -25,9 +27,12 @@ export class UserService {
     ]
 
     private _sendGrid: MailService
+    private _squareApi: SquareApi
 
     private constructor() {
         try {
+            this._squareApi = new SquareApi()
+            this._tokenService = TokenService.instance
             this._sendGrid = new MailService()
             this._sendGrid.setApiKey(process.env['SENDGRID_API_KEY'])
             this._db = Database.instance?.db
@@ -170,6 +175,84 @@ export class UserService {
         })
     }
 
+    async upgrade(req: Request, res: Response) {
+        // verify auth
+        let tokenPackage: TokenPackage
+        if (
+            !(tokenPackage = await this._tokenService.extractTokenPackage(
+                req?.headers?.authorization ?? ''
+            ))
+        ) {
+            res.status(401).send(UnauthorizedError)
+            return
+        }
+
+        // Validate request body
+        const body = req?.body as UpgradeReqBody
+        if (!body?.type || !body?.card || !body?.name || !body?.address) {
+            res.status(400).send(BadRequestError)
+            return
+        }
+
+        const output = {
+            email: tokenPackage?.email,
+            paidThrough: new Date(),
+        }
+        try {
+            const customerOutput = await this._squareApi.createCustomer(
+                body.name?.first,
+                body.name?.last,
+                tokenPackage?.email
+            )
+            this.validateSquareOutput(
+                customerOutput,
+                'createCustomer() failed...'
+            )
+
+            const cardOutput = await this._squareApi.createCard(
+                body.card,
+                body.address.line1,
+                body.address.line2 ?? '',
+                body.address.city,
+                body.address.state,
+                body.address.zip,
+                body.address.country,
+                `${body.name.first} ${body.name.last}`,
+                customerOutput.customer?.id
+            )
+            this.validateSquareOutput(cardOutput, 'createCard() failed...')
+
+            const subscriptionOutput = await this._squareApi.createSubscription(
+                body.type,
+                customerOutput.customer?.id,
+                cardOutput.card?.id
+            )
+            this.validateSquareOutput(
+                subscriptionOutput,
+                'createSubscription() failed...'
+            )
+
+            output.paidThrough =
+                body.type === 'month'
+                    ? new Date(new Date().setMonth(new Date().getMonth() + 1))
+                    : new Date(
+                          new Date().setFullYear(new Date().getFullYear() + 1)
+                      )
+            await this._db
+                .collection('users')
+                .updateOne(
+                    { email: tokenPackage.email },
+                    { $set: { paidThrough: output.paidThrough, role: 'pro' } }
+                )
+        } catch (e) {
+            console.error(e)
+            res.status(500).send(InternalServerError)
+            return
+        }
+
+        res.status(200).send(output)
+    }
+
     private async createUser(body: SignupReqBody): Promise<boolean> {
         return new Promise((resolve) =>
             bcrypt.genSalt().then((salt) => {
@@ -266,6 +349,13 @@ export class UserService {
 
         await this._sendGrid.send(message)
     }
+
+    private validateSquareOutput(output: SquareOutput, message: string) {
+        if (output?.errors) {
+            console.log(JSON.stringify(output))
+            throw new Error(message)
+        }
+    }
 }
 
 export interface SigninReqBody {
@@ -287,4 +377,21 @@ interface SignupReqBody {
 interface VerifyReqBody {
     email: string
     hash: string
+}
+
+interface UpgradeReqBody {
+    type: string
+    card: string
+    name: {
+        first: string
+        last: string
+    }
+    address: {
+        line1: string
+        line2?: string
+        city: string
+        state: string
+        zip: string
+        country: string
+    }
 }

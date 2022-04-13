@@ -3,6 +3,9 @@ import { Request, Response } from 'express'
 import { Db, ObjectId } from 'mongodb'
 import { UserService, AccountType, SigninReqBody } from './userService'
 import * as bcrypt from 'bcrypt'
+import { stringify } from 'querystring'
+import { TokenService } from './tokenService'
+import { doesNotMatch } from 'assert'
 
 describe('UserService', () => {
     let testSubject: UserService
@@ -127,6 +130,143 @@ describe('UserService', () => {
             testSubject.verifyEmail(req, res).then(() => {
                 // Assert
                 expect(spy).toHaveBeenCalled()
+            })
+        })
+    })
+
+    describe('upgrade()', () => {
+        beforeEach(() => {
+            spyOn<any>(
+                testSubject['_tokenService'],
+                'extractTokenPackage'
+            ).and.returnValue(
+                new Promise((resolve) => {
+                    resolve({
+                        id: new ObjectId('621bd519c0a89c2c785bcbaa'),
+                        email: 'test@test.com',
+                        role: 'free',
+                    })
+                })
+            )
+            req = jasmine.createSpyObj(
+                'Request',
+                {},
+                {
+                    headers: {
+                        authorization: 'test',
+                    },
+                    body: {
+                        type: 'month',
+                        card: 'test',
+                        name: {
+                            first: 'test',
+                            last: 'test',
+                        },
+                        address: {
+                            line1: 'test',
+                            city: 'test',
+                            state: 'CA',
+                            zip: '12345',
+                            country: 'US',
+                        },
+                    },
+                }
+            )
+        })
+        it('should call SquareApi.createCustomer()', (done) => {
+            const spy = spyOn<any>(
+                testSubject['_squareApi'],
+                'createCustomer'
+            ).and.returnValue(
+                new Promise((resolve) => {
+                    resolve({
+                        customer: {
+                            id: 'test',
+                        },
+                    })
+                })
+            )
+
+            spyOn<any>(testSubject['_squareApi'], 'createCard')
+
+            testSubject.upgrade(req, res).then(() => {
+                expect(spy).toHaveBeenCalled()
+                done()
+            })
+        })
+
+        it('should call SquareApi.createCard()', (done) => {
+            const spy = spyOn<any>(
+                testSubject['_squareApi'],
+                'createCard'
+            ).and.returnValue(new Promise((resolve) => resolve(1)))
+            spyOn<any>(
+                testSubject['_squareApi'],
+                'createCustomer'
+            ).and.returnValue({
+                customer: {
+                    id: 'test',
+                },
+            })
+
+            spyOn<any>(testSubject['_squareApi'], 'createSubscription')
+
+            testSubject.upgrade(req, res).then(() => {
+                expect(spy).toHaveBeenCalled()
+                done()
+            })
+        })
+
+        it('should call SquareApi.createSubscription()', (done) => {
+            const spy = spyOn<any>(
+                testSubject['_squareApi'],
+                'createSubscription'
+            )
+            spyOn<any>(
+                testSubject['_squareApi'],
+                'createCustomer'
+            ).and.returnValue({
+                customer: {
+                    id: 'test',
+                },
+            })
+            spyOn<any>(testSubject['_squareApi'], 'createCard').and.returnValue(
+                {
+                    card: {
+                        id: 'test',
+                    },
+                }
+            )
+
+            testSubject.upgrade(req, res).then(() => {
+                expect(spy).toHaveBeenCalled()
+                done()
+            })
+        })
+
+        it('should call Db.collection()', (done) => {
+            spyOn<any>(
+                testSubject['_squareApi'],
+                'createCustomer'
+            ).and.returnValue({
+                customer: {
+                    id: 'test',
+                },
+            })
+            spyOn<any>(testSubject['_squareApi'], 'createCard').and.returnValue(
+                {
+                    card: {
+                        id: 'test',
+                    },
+                }
+            )
+            spyOn<any>(testSubject['_squareApi'], 'createSubscription')
+            testSubject['_db'] = jasmine.createSpyObj('Db', ['collection'])
+            const spy = testSubject['_db'].collection
+
+            testSubject.upgrade(req, res).then(() => {
+                expect(spy).toHaveBeenCalled()
+                done()
             })
         })
     })
