@@ -1,11 +1,8 @@
-import * as http from 'http'
-import { IntegerType } from 'mongodb'
-import { checkServerIdentity } from 'tls'
-import { Z_PARTIAL_FLUSH } from 'zlib'
+import * as https from 'https'
 
 export class SquareApi {
 
-    private httpRequest = http.request
+    private httpRequest = https.request
     private headers = {
         'Square-Version': '2022-03-16',
         'Authorization': `Bearer ${process.env['SQUARE_ACCESS_TOKEN']}`,
@@ -24,7 +21,14 @@ export class SquareApi {
                 res.setEncoding('utf8')
                 res.on('data', data => chunks.push(data))
                 res.on('end', () => {
-                    const data = JSON.parse(chunks.join())
+                    let data: T
+                    
+                    try{
+                        data = JSON.parse(chunks.join())
+                    }
+                    catch(e) {
+                        reject(`request() failed: ${e}, data: ${chunks.join()}`)
+                    }
 
                     resolve(data)
                 })
