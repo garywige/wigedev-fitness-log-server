@@ -214,7 +214,7 @@ export class UserService {
             output.paidThrough = body.type === 'month' ? 
             new Date(new Date().setMonth(new Date().getMonth() + 1)) :
             new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-            await this._db.collection('users').updateOne({ _id: tokenPackage.id }, 
+            await this._db.collection('users').updateOne({ email: tokenPackage.email }, 
                 { $set: { paidThrough: output.paidThrough, role: 'pro' }})
         }
         catch(e) {
