@@ -1,5 +1,7 @@
 import * as https from 'https'
 
+import { OutgoingHttpHeaders } from 'http2'
+
 export class SquareApi {
     private httpRequest = https.request
     private headers = {
@@ -12,8 +14,8 @@ export class SquareApi {
         host: string,
         path: string,
         method: string,
-        headers?: any,
-        body?: any
+        headers?: OutgoingHttpHeaders,
+        body?: unknown
     ): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const req = this.httpRequest(
@@ -144,7 +146,11 @@ export interface SquareAddress {
     postal_code: string
 }
 
-export interface CreateCustomerOutput {
+export interface SquareOutput {
+    errors: SquareError[]
+}
+
+export interface CreateCustomerOutput extends SquareOutput {
     customer: {
         id: string
         address: SquareAddress
@@ -154,10 +160,9 @@ export interface CreateCustomerOutput {
         family_name: string
         given_name: string
     }
-    errors: SquareError[]
 }
 
-export interface CreateCardOutput {
+export interface CreateCardOutput extends SquareOutput {
     card: {
         id: string
         billing_address: SquareAddress
@@ -175,10 +180,9 @@ export interface CreateCardOutput {
         prepaid_type: string
         version: number
     }
-    errors: SquareError[]
 }
 
-export interface CreateSubscriptionOutput {
+export interface CreateSubscriptionOutput extends SquareOutput {
     subscription: {
         id: string
         canceled_date: string
@@ -192,5 +196,4 @@ export interface CreateSubscriptionOutput {
         start_date: string
         status: string
     }
-    errors: SquareError[]
 }

@@ -7,11 +7,11 @@ import {
 } from './responses'
 import { Db, ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
+import { SquareApi, SquareOutput } from './squareApi'
 import { TokenPackage, TokenService } from './tokenService'
 
 import { Database } from '../../database/database'
 import { MailService } from '@sendgrid/mail'
-import { SquareApi } from './squareApi'
 
 export class UserService {
     private static _instance: UserService
@@ -350,7 +350,7 @@ export class UserService {
         await this._sendGrid.send(message)
     }
 
-    private validateSquareOutput(output: any, message: string) {
+    private validateSquareOutput(output: SquareOutput, message: string) {
         if (output?.errors) {
             console.log(JSON.stringify(output))
             throw new Error(message)
