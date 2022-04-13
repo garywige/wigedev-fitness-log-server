@@ -1,5 +1,4 @@
 import * as bcrypt from 'bcrypt'
-import * as https from 'https'
 
 import {
     BadRequestError,
@@ -218,7 +217,8 @@ export class UserService {
             await this._db.collection('users').updateOne({ _id: tokenPackage.id }, 
                 { $set: { paidThrough: output.paidThrough, role: 'pro' }})
         }
-        catch {
+        catch(e) {
+            console.error(e)
             res.status(500).send(InternalServerError)
             return
         }
@@ -321,45 +321,6 @@ export class UserService {
         }
 
         await this._sendGrid.send(message)
-    }
-
-    private postSquare(apiPath: string, reqBody: any, onEnd: (data: any) => void) : boolean {
-
-        let result = true
-
-        const req = https.request({
-            host: process.env['SQUARE_API_URL'],
-            path: apiPath,
-            method: 'POST',
-            headers: {
-                'Square-Version': '2022-03-16',
-                'Authorization': `Bearer ${process.env['SQUARE_ACCESS_TOKEN']}`,
-                'Content-Type': 'application/json'
-            }
-        }, res => {
-
-            // set response
-            const chunks = []
-            res.setEncoding('utf8')
-            res.on('data', data => chunks.push(data))
-            res.on('end', () => {
-                const data = JSON.parse(chunks.join())
-
-                if(data?.errors){
-                    console.log(JSON.stringify(data.errors))
-                    result = false
-                }
-                else {
-                    onEnd(data)
-                }
-            })
-        })
-
-        req.write(JSON.stringify(reqBody))
-
-        req.end()
-
-        return result
     }
 
     private validateSquareOutput(output: any, message: string){
