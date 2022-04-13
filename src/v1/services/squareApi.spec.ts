@@ -1,7 +1,6 @@
 import { SquareApi } from './squareApi'
 
 describe('SquareApi', () => {
-
     let service: SquareApi
 
     beforeEach(() => {
@@ -14,9 +13,11 @@ describe('SquareApi', () => {
 
     describe('request()', () => {
         it('should return server response', () => {
-            service['request']<any>('www.google.com', '', 'GET').then(response => {
-                expect(response).toBeTruthy()
-            })
+            service['request']<any>('www.google.com', '', 'GET').then(
+                (response) => {
+                    expect(response).toBeTruthy()
+                }
+            )
         })
 
         it('should call httpRequest()', () => {
@@ -30,16 +31,28 @@ describe('SquareApi', () => {
     describe('createCustomer()', () => {
         it('should call request()', () => {
             const spy = spyOn<any>(service, 'request')
-            service['createCustomer']('test', 'test', 'test@test.com').then(() => {
-                expect(spy).toHaveBeenCalled()
-            })
+            service['createCustomer']('test', 'test', 'test@test.com').then(
+                () => {
+                    expect(spy).toHaveBeenCalled()
+                }
+            )
         })
     })
 
     describe('createCard()', () => {
         it('should call request()', () => {
             const spy = spyOn<any>(service, 'request')
-            service['createCard']('test', 'test', '', 'test', 'test', 'test', 'test', 'test', 'test').then(() => {
+            service['createCard'](
+                'test',
+                'test',
+                '',
+                'test',
+                'test',
+                'test',
+                'test',
+                'test',
+                'test'
+            ).then(() => {
                 expect(spy).toHaveBeenCalled()
             })
         })

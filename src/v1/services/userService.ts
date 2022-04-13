@@ -175,7 +175,7 @@ export class UserService {
         })
     }
 
-    async upgrade(req: Request, res: Response){
+    async upgrade(req: Request, res: Response) {
         // verify auth
         let tokenPackage: TokenPackage
         if (
@@ -189,35 +189,62 @@ export class UserService {
 
         // Validate request body
         const body = req?.body as UpgradeReqBody
-        if(!body?.type || !body?.card || !body?.name || !body?.address) {
+        if (!body?.type || !body?.card || !body?.name || !body?.address) {
             res.status(400).send(BadRequestError)
             return
         }
 
         const output = {
             email: tokenPackage?.email,
-            paidThrough: new Date()
+            paidThrough: new Date(),
         }
         try {
+            const customerOutput = await this._squareApi.createCustomer(
+                body.name?.first,
+                body.name?.last,
+                tokenPackage?.email
+            )
+            this.validateSquareOutput(
+                customerOutput,
+                'createCustomer() failed...'
+            )
 
-            const customerOutput = await this._squareApi.createCustomer(body.name?.first, body.name?.last, tokenPackage?.email)
-            this.validateSquareOutput(customerOutput, 'createCustomer() failed...')
-
-            const cardOutput = await this._squareApi.createCard(body.card, body.address.line1, body.address.line2 ?? '', 
-                body.address.city, body.address.state, body.address.zip, body.address.country, 
-                `${body.name.first} ${body.name.last}`, customerOutput.customer?.id)
+            const cardOutput = await this._squareApi.createCard(
+                body.card,
+                body.address.line1,
+                body.address.line2 ?? '',
+                body.address.city,
+                body.address.state,
+                body.address.zip,
+                body.address.country,
+                `${body.name.first} ${body.name.last}`,
+                customerOutput.customer?.id
+            )
             this.validateSquareOutput(cardOutput, 'createCard() failed...')
 
-            const subscriptionOutput = await this._squareApi.createSubscription(body.type, customerOutput.customer?.id, cardOutput.card?.id)
-            this.validateSquareOutput(subscriptionOutput, 'createSubscription() failed...')
+            const subscriptionOutput = await this._squareApi.createSubscription(
+                body.type,
+                customerOutput.customer?.id,
+                cardOutput.card?.id
+            )
+            this.validateSquareOutput(
+                subscriptionOutput,
+                'createSubscription() failed...'
+            )
 
-            output.paidThrough = body.type === 'month' ? 
-            new Date(new Date().setMonth(new Date().getMonth() + 1)) :
-            new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-            await this._db.collection('users').updateOne({ email: tokenPackage.email }, 
-                { $set: { paidThrough: output.paidThrough, role: 'pro' }})
-        }
-        catch(e) {
+            output.paidThrough =
+                body.type === 'month'
+                    ? new Date(new Date().setMonth(new Date().getMonth() + 1))
+                    : new Date(
+                          new Date().setFullYear(new Date().getFullYear() + 1)
+                      )
+            await this._db
+                .collection('users')
+                .updateOne(
+                    { email: tokenPackage.email },
+                    { $set: { paidThrough: output.paidThrough, role: 'pro' } }
+                )
+        } catch (e) {
             console.error(e)
             res.status(500).send(InternalServerError)
             return
@@ -323,8 +350,8 @@ export class UserService {
         await this._sendGrid.send(message)
     }
 
-    private validateSquareOutput(output: any, message: string){
-        if(output?.errors){
+    private validateSquareOutput(output: any, message: string) {
+        if (output?.errors) {
             console.log(JSON.stringify(output))
             throw new Error(message)
         }
@@ -356,7 +383,7 @@ interface UpgradeReqBody {
     type: string
     card: string
     name: {
-        first: string,
+        first: string
         last: string
     }
     address: {

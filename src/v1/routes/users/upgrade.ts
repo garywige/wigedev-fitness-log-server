@@ -1,6 +1,6 @@
-import { Request, Response, Router } from "express";
+import { Request, Response, Router } from 'express'
 
-import { UserService } from "../../services/userService";
+import { UserService } from '../../services/userService'
 
 const router = Router()
 
