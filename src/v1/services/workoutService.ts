@@ -171,7 +171,8 @@ export class WorkoutService {
                     set.weight,
                     set.unit,
                     set.repsPrescribed,
-                    set.repsPerformed
+                    set.repsPerformed,
+                    set.order
                 )
 
                 resultIds.push(setId)
@@ -347,7 +348,8 @@ export class WorkoutService {
                     set.weight,
                     set.unit,
                     set.repsPrescribed,
-                    set.repsPerformed
+                    set.repsPerformed,
+                    set.order
                 )
                 output.sets.push({
                     id: setId,
@@ -422,7 +424,8 @@ export class WorkoutService {
         weight: number,
         unit: Unit,
         repsPrescribed: number,
-        repsPerformed: number | null
+        repsPerformed: number | null,
+        order: number
     ): Promise<string> {
         const db = Database.instance.db
 
@@ -432,6 +435,7 @@ export class WorkoutService {
             weight: weight,
             unit: unit,
             repsPrescribed: repsPrescribed,
+            order: order
         }
 
         if (repsPerformed) {
@@ -460,6 +464,7 @@ interface SetReqBody {
     unit: Unit
     repsPrescribed: number
     repsPerformed: number | null
+    order: number
 }
 
 export enum Unit {
