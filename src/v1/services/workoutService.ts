@@ -259,7 +259,7 @@ export class WorkoutService {
                 .collection('sets')
                 .aggregate([
                     { $match: { workout_id: workoutId } },
-                    { $sort: { exercise_id: 1, _id: 1 } },
+                    { $sort: { order: 1 } },
                 ])
 
             // build the sets array of the output object
