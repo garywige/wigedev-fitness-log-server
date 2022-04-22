@@ -435,7 +435,7 @@ export class WorkoutService {
             weight: weight,
             unit: unit,
             repsPrescribed: repsPrescribed,
-            order: order
+            order: order,
         }
 
         if (repsPerformed) {
