@@ -183,7 +183,8 @@ describe('WorkoutService', () => {
                 1,
                 'lbs' as Unit,
                 1,
-                1
+                1,
+                0
             ).then(() => {
                 // Assert
                 expect(spy).toHaveBeenCalled()

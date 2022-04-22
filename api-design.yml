@@ -766,16 +766,20 @@ paths:
                         type: integer
                       repsPrescribed:
                         type: integer
+                      order:
+                        type: integer
                     required:
                       - exerciseId
                       - weight
                       - unit
                       - repsPrescribed
+                      - order
                     example:
                       exerciseId: '1337'
                       weight: 135
                       unit: "lbs"
                       repsPrescribed: 10
+                      order: 0
       responses:
         '201': # Response
           description: OK
@@ -889,16 +893,20 @@ paths:
                         type: integer
                       repsPerformed:
                         type: integer
+                      order:
+                        type: integer
                     required:
                       - exerciseId
                       - weight
                       - unit
                       - repsPrescribed
+                      - order
                     example:
                       exerciseId: '1337'
                       weight: 135
                       unit: "lbs"
                       repsPrescribed: 10
+                      order: 0
       responses:
         '200': # Response
           description: OK
